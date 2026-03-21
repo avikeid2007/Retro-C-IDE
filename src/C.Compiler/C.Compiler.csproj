@@ -57,4 +57,18 @@
     <PublishTrimmed Condition="'$(Configuration)' == 'Debug'">False</PublishTrimmed>
     <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">True</PublishTrimmed>
   </PropertyGroup>
+
+  <!-- Auto-download TCC at build time if not already present -->
+  <Target Name="EnsureTCC" BeforeTargets="BeforeBuild" Condition="!Exists('$(MSBuildProjectDirectory)\BundledTcc\tcc.exe')">
+    <Message Importance="high" Text="TCC compiler not found — downloading..." />
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\download-tcc.ps1&quot;" />
+  </Target>
+
+  <!-- Bundle TCC compiler with the app output -->
+  <ItemGroup Condition="Exists('$(MSBuildProjectDirectory)\BundledTcc\tcc.exe')">
+    <Content Include="BundledTcc\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>tcc\%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </Content>
+  </ItemGroup>
 </Project>

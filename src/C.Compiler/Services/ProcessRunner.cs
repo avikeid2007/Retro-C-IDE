@@ -30,6 +30,14 @@ namespace C.Compiler.Services
                 WorkingDirectory = workingDirectory ?? Environment.CurrentDirectory
             };
 
+            // Add compiler's own directory to PATH so it can find its DLLs (e.g. libtcc.dll)
+            var compilerDir = System.IO.Path.GetDirectoryName(fileName);
+            if (!string.IsNullOrEmpty(compilerDir) && System.IO.Directory.Exists(compilerDir))
+            {
+                var currentPath = Environment.GetEnvironmentVariable("PATH") ?? "";
+                startInfo.Environment["PATH"] = compilerDir + ";" + currentPath;
+            }
+
             using var process = new Process { StartInfo = startInfo };
 
             var stdoutBuilder = new StringBuilder();
@@ -76,12 +84,16 @@ namespace C.Compiler.Services
             return result;
         }
 
-        public void RunInConsole(string exePath, string? workingDirectory = null)
+        public void RunInConsole(string exePath, string arguments = "", string? workingDirectory = null)
         {
+            var cmdArgs = string.IsNullOrWhiteSpace(arguments)
+                ? $"/c \"\"{exePath}\" & pause\""
+                : $"/c \"\"{exePath}\" {arguments} & pause\"";
+
             var startInfo = new ProcessStartInfo
             {
                 FileName = "cmd.exe",
-                Arguments = $"/c \"\"{exePath}\" & pause\"",
+                Arguments = cmdArgs,
                 UseShellExecute = true,
                 CreateNoWindow = false,
                 WorkingDirectory = workingDirectory ?? System.IO.Path.GetDirectoryName(exePath) ?? Environment.CurrentDirectory

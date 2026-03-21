@@ -32,16 +32,23 @@ namespace C.Compiler
         private readonly SettingsService _settingsService = new();
         private readonly ObservableCollection<string> _messages = new();
         private readonly List<CompilerError> _currentErrors = new();
+        private readonly List<EditorControl> _editors = new();
 
         private string _lastSearchText = string.Empty;
         private bool _lastSearchCaseSensitive;
         private string? _lastCompiledExePath;
+        private string _programArguments = string.Empty;
+        private int _errorIndex;
 
         // Menu system state
         private readonly Popup[] _menuPopups;
         private readonly Button[] _menuButtons;
         private int _activeMenuIndex = -1;
         private bool _menuBarActive;
+
+        private EditorControl ActiveEditor => _editors.Count > 0 && EditorTabs.SelectedIndex >= 0 && EditorTabs.SelectedIndex < _editors.Count
+            ? _editors[EditorTabs.SelectedIndex]
+            : _editors[0];
 
         public MainWindow()
         {
@@ -84,13 +91,8 @@ namespace C.Compiler
             // Message list
             MessageList.ItemsSource = _messages;
 
-            // Editor
-            var doc = _fileService.CreateNew();
-            ActiveEditor.Document = doc;
-            ActiveEditor.CursorMoved += OnCursorMoved;
-            ActiveEditor.ContentChanged += OnContentChanged;
-            ActiveEditor.CloseRequested += OnEditorCloseRequested;
-            ActiveEditor.FocusEditor();
+            // Create first editor tab
+            AddEditorTab(_fileService.CreateNew());
 
             // Load settings + detect compiler
             _ = InitAsync();
@@ -109,9 +111,106 @@ namespace C.Compiler
             _compilerService.Settings = _settingsService.Settings.Compiler;
 
             if (_compilerService.DetectCompiler())
-                AddMessage($"Compiler detected: {_compilerService.DetectedCompilerType} at {_compilerService.DetectedCompilerPath}");
+            {
+                AddMessage($"Compiler ready: {_compilerService.DetectedCompilerType} — {_compilerService.DetectedCompilerPath}");
+            }
             else
-                AddMessage("No C compiler detected. Configure in Options > Compiler.");
+            {
+                AddMessage("No C compiler found. Rebuild the project to bundle TCC, or configure manually in Options > Compiler.");
+            }
+        }
+
+        // ═══════════════════════════════════════
+        // TAB / MULTI-WINDOW MANAGEMENT
+        // ═══════════════════════════════════════
+
+        private void EditorTabs_AddTabButtonClick(TabView sender, object args)
+        {
+            AddEditorTab(_fileService.CreateNew());
+        }
+
+        private void AddEditorTab(EditorDocument doc)
+        {
+            var editor = new EditorControl();
+            editor.Document = doc;
+            editor.WindowNumber = _editors.Count + 1;
+            editor.CursorMoved += OnCursorMoved;
+            editor.ContentChanged += OnContentChanged;
+            editor.CloseRequested += OnEditorCloseRequested;
+            _editors.Add(editor);
+
+            // Wrap in a Grid to force stretch — TabView content area doesn't always propagate Stretch
+            var wrapper = new Grid();
+            wrapper.Children.Add(editor);
+
+            var tab = new TabViewItem
+            {
+                Header = doc.DisplayTitle,
+                Content = wrapper,
+                IsClosable = true,
+                VerticalContentAlignment = Microsoft.UI.Xaml.VerticalAlignment.Stretch,
+                HorizontalContentAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Stretch,
+            };
+            EditorTabs.TabItems.Add(tab);
+            EditorTabs.SelectedItem = tab;
+            editor.FocusEditor();
+        }
+
+        private void UpdateTabHeaders()
+        {
+            for (int i = 0; i < _editors.Count; i++)
+            {
+                if (i < EditorTabs.TabItems.Count && EditorTabs.TabItems[i] is TabViewItem tab)
+                {
+                    _editors[i].WindowNumber = i + 1;
+                    tab.Header = $"{i + 1} {_editors[i].Document.DisplayTitle}";
+                }
+            }
+        }
+
+        private void EditorTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (EditorTabs.SelectedIndex >= 0 && EditorTabs.SelectedIndex < _editors.Count)
+            {
+                var ed = _editors[EditorTabs.SelectedIndex];
+                StatusLineCol.Text = $"{ed.Document.CursorLine}:{ed.Document.CursorColumn}";
+            }
+        }
+
+        private void EditorTabs_TabCloseRequested(TabView sender, TabViewTabCloseRequestedEventArgs args)
+        {
+            int idx = sender.TabItems.IndexOf(args.Tab);
+            if (idx >= 0 && idx < _editors.Count)
+            {
+                CloseEditorTab(idx);
+            }
+        }
+
+        private void CloseEditorTab(int index)
+        {
+            if (_editors.Count <= 1)
+            {
+                // Last tab — don't close, just reset to new file
+                _editors[0].Document = _fileService.CreateNew();
+                UpdateTabHeaders();
+                return;
+            }
+
+            _editors[index].CursorMoved -= OnCursorMoved;
+            _editors[index].ContentChanged -= OnContentChanged;
+            _editors[index].CloseRequested -= OnEditorCloseRequested;
+            _editors.RemoveAt(index);
+            EditorTabs.TabItems.RemoveAt(index);
+            UpdateTabHeaders();
+        }
+
+        private void SwitchToTab(int index)
+        {
+            if (index >= 0 && index < _editors.Count)
+            {
+                EditorTabs.SelectedIndex = index;
+                ActiveEditor.FocusEditor();
+            }
         }
 
         // ═══════════════════════════════════════
@@ -222,6 +321,20 @@ namespace C.Compiler
         private void Accel_Find(KeyboardAccelerator s, KeyboardAcceleratorInvokedEventArgs e) { SearchFind_Click(s, new RoutedEventArgs()); e.Handled = true; }
         private void Accel_Replace(KeyboardAccelerator s, KeyboardAcceleratorInvokedEventArgs e) { SearchReplace_Click(s, new RoutedEventArgs()); e.Handled = true; }
         private void Accel_GoToLine(KeyboardAccelerator s, KeyboardAcceleratorInvokedEventArgs e) { GoToLine_Click(s, new RoutedEventArgs()); e.Handled = true; }
+        private void Accel_PrevError(KeyboardAccelerator s, KeyboardAcceleratorInvokedEventArgs e) { PreviousError_Click(s, new RoutedEventArgs()); e.Handled = true; }
+        private void Accel_NextError(KeyboardAccelerator s, KeyboardAcceleratorInvokedEventArgs e) { NextError_Click(s, new RoutedEventArgs()); e.Handled = true; }
+        private void Accel_Help(KeyboardAccelerator s, KeyboardAcceleratorInvokedEventArgs e) { HelpContents_Click(s, new RoutedEventArgs()); e.Handled = true; }
+
+        private void Accel_NextWindow(KeyboardAccelerator s, KeyboardAcceleratorInvokedEventArgs e) { WindowNext_Click(s, new RoutedEventArgs()); e.Handled = true; }
+
+        private void Accel_SwitchWindow(KeyboardAccelerator s, KeyboardAcceleratorInvokedEventArgs e)
+        {
+            // Alt+1..Alt+9 → switch to window N
+            int n = s.Key - Windows.System.VirtualKey.Number1; // 0-based
+            if (n >= 0 && n < _editors.Count)
+                SwitchToTab(n);
+            e.Handled = true;
+        }
 
         private void Accel_Escape(KeyboardAccelerator s, KeyboardAcceleratorInvokedEventArgs e)
         {
@@ -230,6 +343,8 @@ namespace C.Compiler
             if (GoToLineDialogOverlay.Visibility == Visibility.Visible) { GoToLineDialogOverlay.Visibility = Visibility.Collapsed; e.Handled = true; return; }
             if (CompilerDialogOverlay.Visibility == Visibility.Visible) { CompilerDialogOverlay.Visibility = Visibility.Collapsed; e.Handled = true; return; }
             if (AboutDialogOverlay.Visibility == Visibility.Visible) { AboutDialogOverlay.Visibility = Visibility.Collapsed; e.Handled = true; return; }
+            if (ArgumentsDialogOverlay.Visibility == Visibility.Visible) { ArgumentsDialogOverlay.Visibility = Visibility.Collapsed; e.Handled = true; return; }
+            if (DirectoriesDialogOverlay.Visibility == Visibility.Visible) { DirectoriesDialogOverlay.Visibility = Visibility.Collapsed; e.Handled = true; return; }
             CloseAllMenus();
             e.Handled = true;
         }
@@ -246,20 +361,27 @@ namespace C.Compiler
         // ═══════════════════════════════════════
 
         private void OnCursorMoved(object? sender, (int Line, int Column) pos) => StatusLineCol.Text = $"{pos.Line}:{pos.Column}";
-        private void OnContentChanged(object? sender, EventArgs e) { }
-        private void OnEditorCloseRequested(object? sender, EventArgs e) => ActiveEditor.Document = _fileService.CreateNew();
+        private void OnContentChanged(object? sender, EventArgs e) => UpdateTabHeaders();
+        private void OnEditorCloseRequested(object? sender, EventArgs e)
+        {
+            if (sender is EditorControl ed)
+            {
+                int idx = _editors.IndexOf(ed);
+                if (idx >= 0) CloseEditorTab(idx);
+            }
+        }
 
         // ═══════════════════════════════════════
         // FILE MENU HANDLERS
         // ═══════════════════════════════════════
 
-        private void FileNew_Click(object sender, RoutedEventArgs e) { CloseAllMenus(); ActiveEditor.Document = _fileService.CreateNew(); }
+        private void FileNew_Click(object sender, RoutedEventArgs e) { CloseAllMenus(); AddEditorTab(_fileService.CreateNew()); }
 
         private async void FileOpen_Click(object sender, RoutedEventArgs e)
         {
             CloseAllMenus();
             var doc = await _fileService.OpenFileAsync();
-            if (doc != null) { ActiveEditor.Document = doc; AddMessage($"Loaded: {doc.FilePath}"); }
+            if (doc != null) { AddEditorTab(doc); AddMessage($"Loaded: {doc.FilePath}"); }
         }
 
         private async void FileSave_Click(object sender, RoutedEventArgs e)
@@ -267,7 +389,10 @@ namespace C.Compiler
             CloseAllMenus();
             ActiveEditor.Document.Content = ActiveEditor.GetText();
             if (await _fileService.SaveAsync(ActiveEditor.Document))
+            {
                 AddMessage($"Saved: {ActiveEditor.Document.FilePath}");
+                UpdateTabHeaders();
+            }
         }
 
         private async void FileSaveAs_Click(object sender, RoutedEventArgs e)
@@ -275,7 +400,10 @@ namespace C.Compiler
             CloseAllMenus();
             ActiveEditor.Document.Content = ActiveEditor.GetText();
             if (await _fileService.SaveAsAsync(ActiveEditor.Document))
+            {
                 AddMessage($"Saved as: {ActiveEditor.Document.FilePath}");
+                UpdateTabHeaders();
+            }
         }
 
         private void ChangeDir_Click(object sender, RoutedEventArgs e) { CloseAllMenus(); AddMessage($"Current directory: {Environment.CurrentDirectory}"); }
@@ -299,11 +427,12 @@ namespace C.Compiler
         // EDIT MENU HANDLERS
         // ═══════════════════════════════════════
 
-        private void EditUndo_Click(object sender, RoutedEventArgs e) { CloseAllMenus(); }
-        private void EditRedo_Click(object sender, RoutedEventArgs e) { CloseAllMenus(); }
-        private void EditCut_Click(object sender, RoutedEventArgs e) { CloseAllMenus(); }
-        private void EditCopy_Click(object sender, RoutedEventArgs e) { CloseAllMenus(); }
-        private void EditPaste_Click(object sender, RoutedEventArgs e) { CloseAllMenus(); }
+        private void EditUndo_Click(object sender, RoutedEventArgs e) { CloseAllMenus(); ActiveEditor.Undo(); }
+        private void EditRedo_Click(object sender, RoutedEventArgs e) { CloseAllMenus(); ActiveEditor.Redo(); }
+        private void EditCut_Click(object sender, RoutedEventArgs e) { CloseAllMenus(); ActiveEditor.Cut(); }
+        private void EditCopy_Click(object sender, RoutedEventArgs e) { CloseAllMenus(); ActiveEditor.Copy(); }
+        private void EditPaste_Click(object sender, RoutedEventArgs e) { CloseAllMenus(); ActiveEditor.Paste(); }
+        private void EditClear_Click(object sender, RoutedEventArgs e) { CloseAllMenus(); ActiveEditor.ClearSelection(); }
 
         // ═══════════════════════════════════════
         // SEARCH MENU — inline dialog overlays
@@ -378,15 +507,27 @@ namespace C.Compiler
 
         private void DlgGoToLine_Cancel(object sender, RoutedEventArgs e) => GoToLineDialogOverlay.Visibility = Visibility.Collapsed;
 
+        private void PreviousError_Click(object sender, RoutedEventArgs e)
+        {
+            CloseAllMenus();
+            if (_currentErrors.Count > 0)
+            {
+                _errorIndex = (_errorIndex - 1 + _currentErrors.Count) % _currentErrors.Count;
+                var error = _currentErrors[_errorIndex];
+                ActiveEditor.GoToLine(error.Line);
+                AddMessage($"Error {_errorIndex + 1}/{_currentErrors.Count}: {error}");
+            }
+        }
+
         private void NextError_Click(object sender, RoutedEventArgs e)
         {
             CloseAllMenus();
             if (_currentErrors.Count > 0)
             {
-                var error = _currentErrors[0];
+                _errorIndex = (_errorIndex + 1) % _currentErrors.Count;
+                var error = _currentErrors[_errorIndex];
                 ActiveEditor.GoToLine(error.Line);
-                _currentErrors.RemoveAt(0);
-                _currentErrors.Add(error);
+                AddMessage($"Error {_errorIndex + 1}/{_currentErrors.Count}: {error}");
             }
         }
 
@@ -396,6 +537,22 @@ namespace C.Compiler
 
         private async void Compile_Click(object sender, RoutedEventArgs e) { CloseAllMenus(); await CompileCurrentFileAsync(compileOnly: true); }
         private async void Make_Click(object sender, RoutedEventArgs e) { CloseAllMenus(); await CompileCurrentFileAsync(compileOnly: false); }
+        private async void LinkExe_Click(object sender, RoutedEventArgs e) { CloseAllMenus(); await CompileCurrentFileAsync(compileOnly: false); AddMessage("Link: TCC links in a single step with Make."); }
+        private async void BuildAll_Click(object sender, RoutedEventArgs e) { CloseAllMenus(); await CompileCurrentFileAsync(compileOnly: false); }
+
+        private void GetInfo_Click(object sender, RoutedEventArgs e)
+        {
+            CloseAllMenus();
+            var doc = ActiveEditor.Document;
+            var text = ActiveEditor.GetText();
+            int lines = text.Split('\r').Length;
+            AddMessage($"═══ File Info ═══");
+            AddMessage($"File: {doc.FileName}");
+            AddMessage($"Path: {doc.FilePath ?? "(unsaved)"}");
+            AddMessage($"Lines: {lines}");
+            AddMessage($"Size: {System.Text.Encoding.UTF8.GetByteCount(text)} bytes");
+            AddMessage($"Compiler: {_compilerService.DetectedCompilerType} — {_compilerService.DetectedCompilerPath}");
+        }
 
         private async Task CompileCurrentFileAsync(bool compileOnly)
         {
@@ -445,8 +602,8 @@ namespace C.Compiler
             await CompileCurrentFileAsync(compileOnly: false);
             if (_lastCompiledExePath != null && File.Exists(_lastCompiledExePath))
             {
-                AddMessage($"Running: {_lastCompiledExePath}");
-                _compilerService.RunExecutable(_lastCompiledExePath);
+                AddMessage($"Running: {_lastCompiledExePath} {_programArguments}");
+                _compilerService.RunExecutable(_lastCompiledExePath, _programArguments);
             }
             else
             {
@@ -455,6 +612,23 @@ namespace C.Compiler
         }
 
         private void UserScreen_Click(object sender, RoutedEventArgs e) { CloseAllMenus(); AddMessage("User Screen: Switch to the console window to see program output."); }
+
+        private void RunArguments_Click(object sender, RoutedEventArgs e)
+        {
+            CloseAllMenus();
+            DlgArgumentsBox.Text = _programArguments;
+            ArgumentsDialogOverlay.Visibility = Visibility.Visible;
+            DlgArgumentsBox.Focus(FocusState.Programmatic);
+        }
+
+        private void DlgArguments_OK(object sender, RoutedEventArgs e)
+        {
+            _programArguments = DlgArgumentsBox.Text.Trim();
+            ArgumentsDialogOverlay.Visibility = Visibility.Collapsed;
+            AddMessage($"Program arguments: {(_programArguments.Length > 0 ? _programArguments : "(none)")}");
+        }
+
+        private void DlgArguments_Cancel(object sender, RoutedEventArgs e) => ArgumentsDialogOverlay.Visibility = Visibility.Collapsed;
 
         // ═══════════════════════════════════════
         // OPTIONS MENU — inline dialog
@@ -495,11 +669,143 @@ namespace C.Compiler
         // WINDOW MENU
         // ═══════════════════════════════════════
 
-        private void WindowList_Click(object sender, RoutedEventArgs e) { CloseAllMenus(); AddMessage($"Window 1: {ActiveEditor.Document.FileName}"); }
+        private void WindowList_Click(object sender, RoutedEventArgs e)
+        {
+            CloseAllMenus();
+            AddMessage("═══ Open Windows ═══");
+            for (int i = 0; i < _editors.Count; i++)
+            {
+                string marker = (i == EditorTabs.SelectedIndex) ? " ►" : "  ";
+                AddMessage($"{marker} {i + 1}: {_editors[i].Document.FileName}");
+            }
+        }
+
+        private void WindowNext_Click(object sender, RoutedEventArgs e)
+        {
+            CloseAllMenus();
+            if (_editors.Count > 1)
+                SwitchToTab((EditorTabs.SelectedIndex + 1) % _editors.Count);
+        }
+
+        private void WindowPrevious_Click(object sender, RoutedEventArgs e)
+        {
+            CloseAllMenus();
+            if (_editors.Count > 1)
+                SwitchToTab((EditorTabs.SelectedIndex - 1 + _editors.Count) % _editors.Count);
+        }
+
+        private void WindowClose_Click(object sender, RoutedEventArgs e)
+        {
+            CloseAllMenus();
+            CloseEditorTab(EditorTabs.SelectedIndex);
+        }
+
+        private void WindowCloseAll_Click(object sender, RoutedEventArgs e)
+        {
+            CloseAllMenus();
+            while (_editors.Count > 1)
+                CloseEditorTab(_editors.Count - 1);
+            _editors[0].Document = _fileService.CreateNew();
+            UpdateTabHeaders();
+        }
+
+        // ═══════════════════════════════════════
+        // OPTIONS > DIRECTORIES — inline dialog
+        // ═══════════════════════════════════════
+
+        private void OptionsDirectories_Click(object sender, RoutedEventArgs e)
+        {
+            CloseAllMenus();
+            var s = _compilerService.Settings;
+            DlgDirInclude.Text = s.IncludeDirectories;
+            DlgDirLib.Text = s.LibraryDirectories;
+            DlgDirOutput.Text = s.OutputDirectory;
+            DirectoriesDialogOverlay.Visibility = Visibility.Visible;
+        }
+
+        private async void DlgDirectories_OK(object sender, RoutedEventArgs e)
+        {
+            DirectoriesDialogOverlay.Visibility = Visibility.Collapsed;
+            _compilerService.Settings.IncludeDirectories = DlgDirInclude.Text.Trim();
+            _compilerService.Settings.LibraryDirectories = DlgDirLib.Text.Trim();
+            _compilerService.Settings.OutputDirectory = DlgDirOutput.Text.Trim();
+            _settingsService.Settings.Compiler = _compilerService.Settings;
+            await _settingsService.SaveAsync();
+            AddMessage("Directories saved.");
+        }
+
+        private void DlgDirectories_Cancel(object sender, RoutedEventArgs e) => DirectoriesDialogOverlay.Visibility = Visibility.Collapsed;
         private void ToggleMessageWindow_Click(object sender, RoutedEventArgs e)
         {
             CloseAllMenus();
             MessagePanel.Visibility = MessagePanel.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        // ═══════════════════════════════════════
+        // HELP MENU
+        // ═══════════════════════════════════════
+
+        private void HelpContents_Click(object sender, RoutedEventArgs e)
+        {
+            CloseAllMenus();
+            ClearMessages();
+            AddMessage("═══════════════════════════════════════════════════════════════");
+            AddMessage("                 TURBO C 3.0 HELP — CONTENTS");
+            AddMessage("═══════════════════════════════════════════════════════════════");
+            AddMessage("");
+            AddMessage(" KEYBOARD SHORTCUTS:");
+            AddMessage("   F2           Save current file");
+            AddMessage("   F3           Open file");
+            AddMessage("   F9           Make (compile + link)");
+            AddMessage("   Alt+F9       Compile to OBJ only");
+            AddMessage("   Ctrl+F9      Run program");
+            AddMessage("   Alt+F5       User screen");
+            AddMessage("   Alt+X        Quit");
+            AddMessage("   Ctrl+F       Find text");
+            AddMessage("   Ctrl+H       Find and replace");
+            AddMessage("   Ctrl+G       Go to line number");
+            AddMessage("   Alt+F7       Previous error");
+            AddMessage("   Alt+F8       Next error");
+            AddMessage("   Ctrl+Z       Undo");
+            AddMessage("   Ctrl+Y       Redo");
+            AddMessage("   F1           Help");
+            AddMessage("   Escape       Close dialog / menu");
+            AddMessage("   F6           Next window");
+            AddMessage("   Alt+1..9     Switch to window N");
+            AddMessage("   Alt+F3       Close window");
+            AddMessage("");
+            AddMessage(" MENUS:");
+            AddMessage("   File      — New, Open, Save, SaveAs, DOS Shell, Quit");
+            AddMessage("   Edit      — Undo, Redo, Cut, Copy, Paste, Clear");
+            AddMessage("   Search    — Find, Replace, Go to Line, Error navigation");
+            AddMessage("   Run       — Run program, set Arguments");
+            AddMessage("   Compile   — Compile to OBJ, Make EXE, Link, Build All");
+            AddMessage("   Options   — Compiler settings, Directories");
+            AddMessage("   Window    — Next, Previous, Close, Close All, List All");
+            AddMessage("");
+            AddMessage(" COMPILER: Uses bundled TCC (Tiny C Compiler)");
+            AddMessage("   Supports #include <stdio.h> and standard C library.");
+            AddMessage("   Configure alternative compiler in Options > Compiler.");
+            AddMessage("═══════════════════════════════════════════════════════════════");
+        }
+
+        private void HelpIndex_Click(object sender, RoutedEventArgs e)
+        {
+            CloseAllMenus();
+            ClearMessages();
+            AddMessage("═══ C KEYWORD INDEX ═══");
+            AddMessage("auto  break  case  char  const  continue  default  do  double");
+            AddMessage("else  enum  extern  float  for  goto  if  int  long  register");
+            AddMessage("return  short  signed  sizeof  static  struct  switch  typedef");
+            AddMessage("union  unsigned  void  volatile  while");
+            AddMessage("");
+            AddMessage("═══ STANDARD LIBRARY ═══");
+            AddMessage("<stdio.h>   printf  scanf  fprintf  fscanf  fopen  fclose  fgets");
+            AddMessage("<stdlib.h>  malloc  free  calloc  realloc  atoi  atof  exit  rand");
+            AddMessage("<string.h>  strlen  strcpy  strcat  strcmp  memcpy  memset  strstr");
+            AddMessage("<math.h>    sin  cos  tan  sqrt  pow  abs  ceil  floor  log");
+            AddMessage("<ctype.h>   isalpha  isdigit  isalnum  toupper  tolower  isspace");
+            AddMessage("<time.h>    time  clock  difftime  localtime  strftime");
         }
 
         // ═══════════════════════════════════════
@@ -508,5 +814,22 @@ namespace C.Compiler
 
         private void About_Click(object sender, RoutedEventArgs e) { CloseAllMenus(); AboutDialogOverlay.Visibility = Visibility.Visible; }
         private void DlgAbout_OK(object sender, RoutedEventArgs e) => AboutDialogOverlay.Visibility = Visibility.Collapsed;
+
+        // ═══════════════════════════════════════
+        // MESSAGE LIST — click to navigate errors
+        // ═══════════════════════════════════════
+
+        private void MessageList_ItemClick(object sender, ItemClickEventArgs e)
+        {
+            if (e.ClickedItem is string msg)
+            {
+                // Try to parse error line from message like "file.c:10:5: error: ..."
+                var match = System.Text.RegularExpressions.Regex.Match(msg, @":(\d+):");
+                if (match.Success && int.TryParse(match.Groups[1].Value, out int line) && line > 0)
+                {
+                    ActiveEditor.GoToLine(line);
+                }
+            }
+        }
     }
 }

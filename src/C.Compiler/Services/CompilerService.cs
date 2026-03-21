@@ -23,9 +23,20 @@ namespace C.Compiler.Services
         public string? DetectedCompilerPath { get; private set; }
         public string DetectedCompilerType { get; private set; } = "none";
 
+        private readonly TccManager _tccManager = new();
+        public TccManager BundledTcc => _tccManager;
+
         public bool DetectCompiler()
         {
-            // Check for GCC/MinGW on PATH
+            // 1. Check for bundled TCC (auto-downloaded)
+            if (_tccManager.IsInstalled)
+            {
+                DetectedCompilerPath = _tccManager.TccExePath;
+                DetectedCompilerType = "tcc";
+                return true;
+            }
+
+            // 2. Check for GCC/MinGW on PATH
             string? gccPath = FindOnPath("gcc.exe");
             if (gccPath != null)
             {
@@ -55,6 +66,9 @@ namespace C.Compiler.Services
             return false;
         }
 
+        public bool HasCompiler => DetectedCompilerPath != null 
+            || (!string.IsNullOrEmpty(_settings.CompilerPath) && File.Exists(_settings.CompilerPath));
+
         public string GetCompilerPath()
         {
             if (!string.IsNullOrEmpty(_settings.CompilerPath) && File.Exists(_settings.CompilerPath))
@@ -63,7 +77,11 @@ namespace C.Compiler.Services
             if (DetectedCompilerPath != null)
                 return DetectedCompilerPath;
 
-            return "gcc"; // fallback, hope it's on PATH
+            // Try bundled TCC as last resort
+            if (_tccManager.IsInstalled)
+                return _tccManager.TccExePath;
+
+            return "gcc"; // fallback
         }
 
         public string GetCompilerType()
@@ -76,6 +94,16 @@ namespace C.Compiler.Services
 
         public async Task<CompileResult> CompileAsync(string sourceFilePath)
         {
+            if (!HasCompiler)
+            {
+                return new CompileResult
+                {
+                    Success = false,
+                    RawOutput = "No C compiler available. The app will try to download TCC on next restart, or configure manually in Options > Compiler.",
+                    Errors = new List<CompilerError> { new CompilerError { Message = "No compiler found", Severity = CompilerErrorSeverity.Error, Line = 0 } }
+                };
+            }
+
             string compiler = GetCompilerPath();
             string compilerType = GetCompilerType();
             string outputDir = !string.IsNullOrEmpty(_settings.OutputDirectory) 
@@ -105,6 +133,16 @@ namespace C.Compiler.Services
 
         public async Task<CompileResult> MakeAsync(string sourceFilePath)
         {
+            if (!HasCompiler)
+            {
+                return new CompileResult
+                {
+                    Success = false,
+                    RawOutput = "No C compiler available. The app will try to download TCC on next restart, or configure manually in Options > Compiler.",
+                    Errors = new List<CompilerError> { new CompilerError { Message = "No compiler found", Severity = CompilerErrorSeverity.Error, Line = 0 } }
+                };
+            }
+
             string compiler = GetCompilerPath();
             string compilerType = GetCompilerType();
             string outputDir = !string.IsNullOrEmpty(_settings.OutputDirectory) 
@@ -132,9 +170,9 @@ namespace C.Compiler.Services
             };
         }
 
-        public void RunExecutable(string exePath)
+        public void RunExecutable(string exePath, string arguments = "")
         {
-            _processRunner.RunInConsole(exePath);
+            _processRunner.RunInConsole(exePath, arguments, Path.GetDirectoryName(exePath));
         }
 
         private string BuildGccCompileArgs(string source, string output)

@@ -9,7 +9,9 @@ using Microsoft.UI;
 using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 
+using Windows.Foundation;
 using Windows.UI;
 
 namespace C.Compiler.Controls
@@ -21,6 +23,9 @@ namespace C.Compiler.Controls
         private bool _isUpdating;
         private bool _isHighlighting;
         private int _windowNumber = 1;
+        private DispatcherTimer? _highlightTimer;
+        private DispatcherTimer? _cursorBlinkTimer;
+        private bool _cursorVisible = true;
 
         public event EventHandler? CloseRequested;
         public event EventHandler? ContentChanged;
@@ -42,7 +47,6 @@ namespace C.Compiler.Controls
             set
             {
                 _windowNumber = value;
-                WindowNumberText.Text = value.ToString();
             }
         }
 
@@ -50,13 +54,15 @@ namespace C.Compiler.Controls
         {
             InitializeComponent();
             SetEditorDefaults();
+            StartCursorBlink();
+
+            Loaded += (_, _) => { CodeEditor.Focus(FocusState.Programmatic); UpdateBlockCursorPosition(); };
         }
 
         private void SetEditorDefaults()
         {
             CodeEditor.Document.SetText(TextSetOptions.None, string.Empty);
 
-            // Set default character formatting
             var format = CodeEditor.Document.GetDefaultCharacterFormat();
             format.ForegroundColor = Color.FromArgb(255, 255, 255, 85); // Yellow
             format.Size = 14;
@@ -67,19 +73,17 @@ namespace C.Compiler.Controls
         private void LoadDocument()
         {
             _isUpdating = true;
-            TitleText.Text = _document.DisplayTitle;
+            TitleRun.Text = _document.DisplayTitle;
 
             CodeEditor.Document.SetText(TextSetOptions.None, _document.Content);
             ApplySyntaxHighlighting();
 
             _isUpdating = false;
-            UpdateLineNumbers();
         }
 
         public string GetText()
         {
             CodeEditor.Document.GetText(TextGetOptions.None, out string text);
-            // RichEditBox appends a trailing \r, remove it
             return text.TrimEnd('\r', '\n');
         }
 
@@ -90,7 +94,6 @@ namespace C.Compiler.Controls
             _document.Content = text;
             ApplySyntaxHighlighting();
             _isUpdating = false;
-            UpdateLineNumbers();
         }
 
         public void GoToLine(int lineNumber)
@@ -117,6 +120,34 @@ namespace C.Compiler.Controls
             CodeEditor.Focus(FocusState.Programmatic);
         }
 
+        public void Undo() => CodeEditor.Document.Undo();
+        public void Redo() => CodeEditor.Document.Redo();
+
+        public void Cut()
+        {
+            CodeEditor.Document.Selection.Cut();
+        }
+
+        public void Copy()
+        {
+            CodeEditor.Document.Selection.Copy();
+        }
+
+        public async void Paste()
+        {
+            var dataPackageView = Windows.ApplicationModel.DataTransfer.Clipboard.GetContent();
+            if (dataPackageView.Contains(Windows.ApplicationModel.DataTransfer.StandardDataFormats.Text))
+            {
+                string text = await dataPackageView.GetTextAsync();
+                CodeEditor.Document.Selection.TypeText(text);
+            }
+        }
+
+        public void ClearSelection()
+        {
+            CodeEditor.Document.Selection.TypeText(string.Empty);
+        }
+
         public bool Find(string searchText, bool caseSensitive, bool wholeWord)
         {
             if (string.IsNullOrEmpty(searchText)) return false;
@@ -127,7 +158,6 @@ namespace C.Compiler.Controls
             int startFrom = CodeEditor.Document.Selection.EndPosition;
             int index = text.IndexOf(searchText, startFrom, comparison);
 
-            // Wrap around
             if (index < 0)
                 index = text.IndexOf(searchText, 0, comparison);
 
@@ -148,9 +178,8 @@ namespace C.Compiler.Controls
             var comparison = caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
 
             int count = 0;
-            int index;
-            var sb = new StringBuilder(text);
             int searchFrom = 0;
+            int index;
 
             while ((index = text.IndexOf(searchText, searchFrom, comparison)) >= 0)
             {
@@ -166,7 +195,7 @@ namespace C.Compiler.Controls
                 SetText(newText);
                 _document.IsDirty = true;
                 _document.Content = newText;
-                TitleText.Text = _document.DisplayTitle;
+                TitleRun.Text = _document.DisplayTitle;
             }
 
             return count;
@@ -176,16 +205,21 @@ namespace C.Compiler.Controls
         {
             if (_isHighlighting) return;
             _isHighlighting = true;
+            _isUpdating = true;
 
             try
             {
+                // Save cursor position
+                int selStart = CodeEditor.Document.Selection.StartPosition;
+                int selEnd = CodeEditor.Document.Selection.EndPosition;
+
                 string text = GetText();
                 var tokens = _highlighter.Tokenize(text);
 
-                // Set all text to default color first
+                // Reset all text to default yellow
                 var fullRange = CodeEditor.Document.GetRange(0, text.Length);
                 var defaultFormat = fullRange.CharacterFormat;
-                defaultFormat.ForegroundColor = Color.FromArgb(255, 255, 255, 85); // Yellow default
+                defaultFormat.ForegroundColor = Color.FromArgb(255, 255, 255, 85);
                 defaultFormat.Bold = FormatEffect.Off;
                 defaultFormat.Name = "Consolas";
                 defaultFormat.Size = 14;
@@ -201,28 +235,15 @@ namespace C.Compiler.Controls
                     format.Name = "Consolas";
                     format.Size = 14;
                 }
+
+                // Restore cursor position
+                CodeEditor.Document.Selection.SetRange(selStart, selEnd);
             }
             finally
             {
+                _isUpdating = false;
                 _isHighlighting = false;
             }
-        }
-
-        private void UpdateLineNumbers()
-        {
-            string text = GetText();
-            int lineCount = 1;
-            foreach (char c in text)
-            {
-                if (c == '\r') lineCount++;
-            }
-
-            var sb = new StringBuilder();
-            for (int i = 1; i <= lineCount; i++)
-            {
-                sb.AppendLine(i.ToString());
-            }
-            LineNumbers.Text = sb.ToString().TrimEnd();
         }
 
         private (int Line, int Column) GetCursorPosition()
@@ -254,12 +275,22 @@ namespace C.Compiler.Controls
             string text = GetText();
             _document.Content = text;
             _document.IsDirty = true;
-            TitleText.Text = _document.DisplayTitle;
+            TitleRun.Text = _document.DisplayTitle;
 
-            UpdateLineNumbers();
-            ApplySyntaxHighlighting();
+            // Debounce syntax highlighting — only run after 400ms idle
+            _highlightTimer?.Stop();
+            _highlightTimer ??= new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(400) };
+            _highlightTimer.Tick -= HighlightTimer_Tick;
+            _highlightTimer.Tick += HighlightTimer_Tick;
+            _highlightTimer.Start();
 
             ContentChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void HighlightTimer_Tick(object? sender, object e)
+        {
+            _highlightTimer?.Stop();
+            ApplySyntaxHighlighting();
         }
 
         private void CodeEditor_SelectionChanged(object sender, RoutedEventArgs e)
@@ -269,17 +300,62 @@ namespace C.Compiler.Controls
             var (line, col) = GetCursorPosition();
             _document.CursorLine = line;
             _document.CursorColumn = col;
+
+            // Update the bottom border line:col display
+            BottomLineColRun.Text = $"{line}:{col}";
+
             CursorMoved?.Invoke(this, (line, col));
+
+            UpdateBlockCursorPosition();
+        }
+
+        private void StartCursorBlink()
+        {
+            _cursorBlinkTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(530) };
+            _cursorBlinkTimer.Tick += (_, _) =>
+            {
+                _cursorVisible = !_cursorVisible;
+                BlockCursor.Opacity = _cursorVisible ? 1 : 0;
+            };
+            _cursorBlinkTimer.Start();
+        }
+
+        private void UpdateBlockCursorPosition()
+        {
+            try
+            {
+                var sel = CodeEditor.Document.Selection;
+                // Only show block cursor when there's no selection range (caret mode)
+                if (sel.StartPosition != sel.EndPosition)
+                {
+                    BlockCursor.Opacity = 0;
+                    return;
+                }
+
+                var range = CodeEditor.Document.GetRange(sel.StartPosition, sel.StartPosition);
+                range.GetRect(PointOptions.ClientCoordinates, out Rect rect, out _);
+
+                // Transform from RichEditBox coordinates to the parent Grid
+                var transform = CodeEditor.TransformToVisual(BlockCursor.Parent as UIElement);
+                var point = transform.TransformPoint(new Point(rect.X, rect.Y));
+
+                BlockCursor.Margin = new Thickness(point.X, point.Y, 0, 0);
+                _cursorVisible = true;
+                BlockCursor.Opacity = 1;
+
+                // Reset blink cycle so cursor is visible right after moving
+                _cursorBlinkTimer?.Stop();
+                _cursorBlinkTimer?.Start();
+            }
+            catch
+            {
+                // Ignore positioning errors (e.g., during load)
+            }
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
             CloseRequested?.Invoke(this, EventArgs.Empty);
-        }
-
-        private void ZoomButton_Click(object sender, RoutedEventArgs e)
-        {
-            // Toggle zoom (could toggle visibility of other panels)
         }
     }
 }

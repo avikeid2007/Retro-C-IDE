@@ -1,518 +1,1512 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
 <Window
     x:Class="C.Compiler.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:C.Compiler"
     xmlns:controls="using:C.Compiler.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:C.Compiler"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d"
-    Title="Turbo C">
+    Title="Turbo C"
+    mc:Ignorable="d">
 
     <Grid x:Name="RootGrid" Background="#FF0000AA">
         <Grid.RowDefinitions>
-            <RowDefinition Height="24"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="2"/>
-            <RowDefinition Height="140"/>
-            <RowDefinition Height="24"/>
+            <RowDefinition Height="28" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="24" />
         </Grid.RowDefinitions>
 
-        <!-- ═══════════════════════════════════════════════ -->
-        <!-- ROW 0: CUSTOM MENU BAR (no WinUI MenuBar)      -->
-        <!-- Gray background, black text, flat buttons       -->
-        <!-- ═══════════════════════════════════════════════ -->
-        <Grid Grid.Row="0" x:Name="MenuBarGrid" Background="#FFAAAAAA">
-            <StackPanel x:Name="MenuBarPanel" Orientation="Horizontal" VerticalAlignment="Stretch">
-                <Button x:Name="SysMenuBtn"     Content=" ≡ "       Style="{StaticResource DosMenuTitleStyle}" Click="MenuTitle_Click" PointerEntered="MenuTitle_Hover" Tag="0"/>
-                <Button x:Name="FileMenuBtn"    Content=" File "    Style="{StaticResource DosMenuTitleStyle}" Click="MenuTitle_Click" PointerEntered="MenuTitle_Hover" Tag="1"/>
-                <Button x:Name="EditMenuBtn"    Content=" Edit "    Style="{StaticResource DosMenuTitleStyle}" Click="MenuTitle_Click" PointerEntered="MenuTitle_Hover" Tag="2"/>
-                <Button x:Name="SearchMenuBtn"  Content=" Search "  Style="{StaticResource DosMenuTitleStyle}" Click="MenuTitle_Click" PointerEntered="MenuTitle_Hover" Tag="3"/>
-                <Button x:Name="RunMenuBtn"     Content=" Run "     Style="{StaticResource DosMenuTitleStyle}" Click="MenuTitle_Click" PointerEntered="MenuTitle_Hover" Tag="4"/>
-                <Button x:Name="CompileMenuBtn" Content=" Compile " Style="{StaticResource DosMenuTitleStyle}" Click="MenuTitle_Click" PointerEntered="MenuTitle_Hover" Tag="5"/>
-                <Button x:Name="DebugMenuBtn"   Content=" Debug "   Style="{StaticResource DosMenuTitleStyle}" Click="MenuTitle_Click" PointerEntered="MenuTitle_Hover" Tag="6"/>
-                <Button x:Name="ProjectMenuBtn" Content=" Project " Style="{StaticResource DosMenuTitleStyle}" Click="MenuTitle_Click" PointerEntered="MenuTitle_Hover" Tag="7"/>
-                <Button x:Name="OptionsMenuBtn" Content=" Options " Style="{StaticResource DosMenuTitleStyle}" Click="MenuTitle_Click" PointerEntered="MenuTitle_Hover" Tag="8"/>
-                <Button x:Name="WindowMenuBtn"  Content=" Window "  Style="{StaticResource DosMenuTitleStyle}" Click="MenuTitle_Click" PointerEntered="MenuTitle_Hover" Tag="9"/>
-                <Button x:Name="HelpMenuBtn"    Content=" Help "    Style="{StaticResource DosMenuTitleStyle}" Click="MenuTitle_Click" PointerEntered="MenuTitle_Hover" Tag="10"/>
+        <!--  ═══════════════════════════════════════════════  -->
+        <!--  ROW 0: MENU BAR — Gray bg, RED hotkey letters  -->
+        <!--  Matches TC3: ≡ File Edit Search Run ...  -->
+        <!--  ═══════════════════════════════════════════════  -->
+        <Grid
+            x:Name="MenuBarGrid"
+            Grid.Row="0"
+            Background="#FFAAAAAA">
+            <StackPanel
+                x:Name="MenuBarPanel"
+                VerticalAlignment="Stretch"
+                Orientation="Horizontal">
+                <Button
+                    x:Name="SysMenuBtn"
+                    VerticalContentAlignment="Top"
+                    Click="MenuTitle_Click"
+                    PointerEntered="MenuTitle_Hover"
+                    Style="{StaticResource DosMenuTitleStyle}"
+                    Tag="0">
+                    <TextBlock
+                        Margin="0"
+                        Padding="0"
+                        VerticalAlignment="Top"
+                        FontFamily="Consolas"
+                        FontSize="24"
+                        Foreground="#FF000000"
+                        Text=" ≡ " />
+                </Button>
+                <Button
+                    x:Name="FileMenuBtn"
+                    Click="MenuTitle_Click"
+                    PointerEntered="MenuTitle_Hover"
+                    Style="{StaticResource DosMenuTitleStyle}"
+                    Tag="1">
+                    <TextBlock FontFamily="Consolas" FontSize="20"><Run Text=" " /><Run Foreground="#FFFF0000" Text="F" /><Run Foreground="#FF000000" Text="ile " /></TextBlock>
+                </Button>
+                <Button
+                    x:Name="EditMenuBtn"
+                    Click="MenuTitle_Click"
+                    PointerEntered="MenuTitle_Hover"
+                    Style="{StaticResource DosMenuTitleStyle}"
+                    Tag="2">
+                    <TextBlock FontFamily="Consolas" FontSize="20"><Run Text=" " /><Run Foreground="#FFFF0000" Text="E" /><Run Foreground="#FF000000" Text="dit " /></TextBlock>
+                </Button>
+                <Button
+                    x:Name="SearchMenuBtn"
+                    Click="MenuTitle_Click"
+                    PointerEntered="MenuTitle_Hover"
+                    Style="{StaticResource DosMenuTitleStyle}"
+                    Tag="3">
+                    <TextBlock FontFamily="Consolas" FontSize="20"><Run Text=" " /><Run Foreground="#FFFF0000" Text="S" /><Run Foreground="#FF000000" Text="earch " /></TextBlock>
+                </Button>
+                <Button
+                    x:Name="RunMenuBtn"
+                    Click="MenuTitle_Click"
+                    PointerEntered="MenuTitle_Hover"
+                    Style="{StaticResource DosMenuTitleStyle}"
+                    Tag="4">
+                    <TextBlock FontFamily="Consolas" FontSize="20"><Run Text=" " /><Run Foreground="#FFFF0000" Text="R" /><Run Foreground="#FF000000" Text="un " /></TextBlock>
+                </Button>
+                <Button
+                    x:Name="CompileMenuBtn"
+                    Click="MenuTitle_Click"
+                    PointerEntered="MenuTitle_Hover"
+                    Style="{StaticResource DosMenuTitleStyle}"
+                    Tag="5">
+                    <TextBlock FontFamily="Consolas" FontSize="20"><Run Text=" " /><Run Foreground="#FFFF0000" Text="C" /><Run Foreground="#FF000000" Text="ompile " /></TextBlock>
+                </Button>
+                <Button
+                    x:Name="DebugMenuBtn"
+                    Click="MenuTitle_Click"
+                    PointerEntered="MenuTitle_Hover"
+                    Style="{StaticResource DosMenuTitleStyle}"
+                    Tag="6">
+                    <TextBlock FontFamily="Consolas" FontSize="20"><Run Text=" " /><Run Foreground="#FFFF0000" Text="D" /><Run Foreground="#FF000000" Text="ebug " /></TextBlock>
+                </Button>
+                <Button
+                    x:Name="ProjectMenuBtn"
+                    Click="MenuTitle_Click"
+                    PointerEntered="MenuTitle_Hover"
+                    Style="{StaticResource DosMenuTitleStyle}"
+                    Tag="7">
+                    <TextBlock FontFamily="Consolas" FontSize="20"><Run Text=" " /><Run Foreground="#FFFF0000" Text="P" /><Run Foreground="#FF000000" Text="roject " /></TextBlock>
+                </Button>
+                <Button
+                    x:Name="OptionsMenuBtn"
+                    Click="MenuTitle_Click"
+                    PointerEntered="MenuTitle_Hover"
+                    Style="{StaticResource DosMenuTitleStyle}"
+                    Tag="8">
+                    <TextBlock FontFamily="Consolas" FontSize="20"><Run Text=" " /><Run Foreground="#FFFF0000" Text="O" /><Run Foreground="#FF000000" Text="ptions " /></TextBlock>
+                </Button>
+                <Button
+                    x:Name="WindowMenuBtn"
+                    Click="MenuTitle_Click"
+                    PointerEntered="MenuTitle_Hover"
+                    Style="{StaticResource DosMenuTitleStyle}"
+                    Tag="9">
+                    <TextBlock FontFamily="Consolas" FontSize="20"><Run Text=" " /><Run Foreground="#FFFF0000" Text="W" /><Run Foreground="#FF000000" Text="indow " /></TextBlock>
+                </Button>
+                <Button
+                    x:Name="HelpMenuBtn"
+                    Click="MenuTitle_Click"
+                    PointerEntered="MenuTitle_Hover"
+                    Style="{StaticResource DosMenuTitleStyle}"
+                    Tag="10">
+                    <TextBlock FontFamily="Consolas" FontSize="20"><Run Text=" " /><Run Foreground="#FFFF0000" Text="H" /><Run Foreground="#FF000000" Text="elp " /></TextBlock>
+                </Button>
             </StackPanel>
         </Grid>
 
-        <!-- ═══════════════════════════════════════════════ -->
-        <!-- ROW 1: EDITOR AREA                              -->
-        <!-- ═══════════════════════════════════════════════ -->
-        <Grid Grid.Row="1" Margin="2">
-            <controls:EditorControl x:Name="ActiveEditor"/>
-        </Grid>
+        <!--  ═══════════════════════════════════════════════  -->
+        <!--  ROW 1: EDITOR + WATCH PANEL (vertical split)  -->
+        <!--  ═══════════════════════════════════════════════  -->
+        <Grid Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
 
-        <!-- ═══════════════════════════════════════════════ -->
-        <!-- ROW 2: DIVIDER                                  -->
-        <!-- ═══════════════════════════════════════════════ -->
-        <Border Grid.Row="2" Background="#FF00AAAA"/>
+            <!--  EDITOR TABS — multiple editor windows  -->
+            <TabView
+                x:Name="EditorTabs"
+                Grid.Row="0"
+                VerticalAlignment="Stretch"
+                AddTabButtonClick="EditorTabs_AddTabButtonClick"
+                Background="#FF0000AA"
+                IsAddTabButtonVisible="True"
+                SelectionChanged="EditorTabs_SelectionChanged"
+                TabCloseRequested="EditorTabs_TabCloseRequested">
+                <TabView.Resources>
+                    <SolidColorBrush x:Key="TabViewBackground" Color="#FF0000AA" />
+                    <SolidColorBrush x:Key="TabViewItemHeaderBackground" Color="#FF000088" />
+                    <SolidColorBrush x:Key="TabViewItemHeaderBackgroundSelected" Color="#FF0000AA" />
+                    <SolidColorBrush x:Key="TabViewItemHeaderForeground" Color="#FF00AAAA" />
+                    <SolidColorBrush x:Key="TabViewItemHeaderForegroundSelected" Color="#FFFFFFFF" />
+                </TabView.Resources>
+            </TabView>
 
-        <!-- ═══════════════════════════════════════════════ -->
-        <!-- ROW 3: MESSAGE WINDOW                           -->
-        <!-- ═══════════════════════════════════════════════ -->
-        <Border Grid.Row="3" x:Name="MessagePanel"
-                BorderBrush="#FF00AAAA" BorderThickness="2"
-                Margin="2,0,2,0" Background="#FF000088" CornerRadius="0">
-            <Grid>
+            <!--  WATCH/MESSAGE PANEL — TC3 box-drawing border  -->
+            <Grid
+                x:Name="MessagePanel"
+                Grid.Row="1"
+                Height="140">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="22"/>
-                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Grid Grid.Row="0" Background="#FF00AAAA">
-                    <TextBlock Text="═══════════════════ Message ═══════════════════"
-                               FontFamily="Consolas" FontSize="12"
-                               Foreground="#FF000000" HorizontalAlignment="Center"
-                               VerticalAlignment="Center" FontWeight="Bold"/>
+                <!--  Top border with title  -->
+                <Grid Grid.Row="0">
+                    <TextBlock
+                        Padding="0,0,0,0"
+                        VerticalAlignment="Center"
+                        FontFamily="Consolas"
+                        FontSize="13"
+                        Foreground="#FF00AAAA">
+                        <Run Text="[" /><Run Foreground="#FF00AA00" Text=" ■ " /><Run Text="]" /><Run Text="═══════════════════════════════ " />
+                        <Run
+                            FontWeight="Bold"
+                            Foreground="#FFFFFFFF"
+                            Text="Message" />
+                        <Run Text=" ═══════════════════════════════════════════════════════════════" />
+                    </TextBlock>
                 </Grid>
-                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Background="Transparent">
-                    <ItemsControl x:Name="MessageList" Padding="4,2">
-                        <ItemsControl.ItemTemplate>
+                <!--  Message content  -->
+                <ScrollViewer
+                    Grid.Row="1"
+                    Padding="1"
+                    Background="#FF00AAAA"
+                    HorizontalScrollBarVisibility="Auto"
+                    VerticalScrollBarVisibility="Auto">
+                    <ListView
+                        x:Name="MessageList"
+                        Padding="4,2"
+                        Background="#FF00AAAA"
+                        IsItemClickEnabled="True"
+                        ItemClick="MessageList_ItemClick"
+                        SelectionMode="Single">
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Setter Property="MinHeight" Value="0" />
+                                <Setter Property="Padding" Value="0" />
+                                <Setter Property="Margin" Value="0" />
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                        <ListView.ItemTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding}"
-                                           FontFamily="Consolas" FontSize="13"
-                                           Foreground="#FFFFFFFF" TextWrapping="NoWrap" Padding="0,1"/>
+                                <TextBlock
+                                    Padding="0,0"
+                                    FontFamily="Consolas"
+                                    FontSize="13"
+                                    Foreground="#FF000000"
+                                    Text="{Binding}"
+                                    TextWrapping="NoWrap" />
                             </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                        </ListView.ItemTemplate>
+                    </ListView>
                 </ScrollViewer>
+                <!--  Bottom border with scroll indicator  -->
+                <TextBlock
+                    Grid.Row="2"
+                    VerticalAlignment="Center"
+                    FontFamily="Consolas"
+                    FontSize="13"
+                    Foreground="#FF00AAAA">
+                    <Run Text=" ═══════════════════════════════════════════════════════════════════════════════════════════════" />
+                </TextBlock>
             </Grid>
-        </Border>
-
-        <!-- ═══════════════════════════════════════════════ -->
-        <!-- ROW 4: STATUS BAR                               -->
-        <!-- ═══════════════════════════════════════════════ -->
-        <Grid Grid.Row="4" Background="#FF00AAAA" Padding="2,0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="0" FontFamily="Consolas" FontSize="12"
-                       Foreground="#FF000000" VerticalAlignment="Center">
-                <Run Text=" F1" FontWeight="Bold" Foreground="#FFFFFFFF"/><Run Text=" Help "/>
-                <Run Text="│"/>
-                <Run Text=" F2" FontWeight="Bold" Foreground="#FFFFFFFF"/><Run Text=" Save "/>
-                <Run Text="│"/>
-                <Run Text=" F3" FontWeight="Bold" Foreground="#FFFFFFFF"/><Run Text=" Open "/>
-                <Run Text="│"/>
-                <Run Text=" Alt+F9" FontWeight="Bold" Foreground="#FFFFFFFF"/><Run Text=" Compile "/>
-                <Run Text="│"/>
-                <Run Text=" F9" FontWeight="Bold" Foreground="#FFFFFFFF"/><Run Text=" Make "/>
-                <Run Text="│"/>
-                <Run Text=" F10" FontWeight="Bold" Foreground="#FFFFFFFF"/><Run Text=" Menu"/>
-            </TextBlock>
-            <TextBlock Grid.Column="1" x:Name="StatusLineCol" Text="1:1"
-                       FontFamily="Consolas" FontSize="12"
-                       Foreground="#FF000000" FontWeight="Bold"
-                       VerticalAlignment="Center" Margin="8,0"/>
         </Grid>
 
-        <!-- ═══════════════════════════════════════════════ -->
-        <!-- MENU DROPDOWN POPUPS                            -->
-        <!-- Each Popup is positioned absolutely via code    -->
-        <!-- ═══════════════════════════════════════════════ -->
+        <!--  ═══════════════════════════════════════════════  -->
+        <!--  ROW 2: STATUS BAR — exact TC3 layout  -->
+        <!--  F1 Help  F7 Trace  F8 Step  ...  F10 Menu  -->
+        <!--  ═══════════════════════════════════════════════  -->
+        <Grid
+            Grid.Row="2"
+            Padding="2,0"
+            Background="#FF00AAAA">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock
+                Grid.Column="0"
+                VerticalAlignment="Center"
+                FontFamily="Consolas"
+                FontSize="20"
+                Foreground="#FF000000">
+                <Run
+                    FontWeight="Bold"
+                    Foreground="#FFFFFFFF"
+                    Text=" F1" /><Run Text=" Help " />
+                <Run Text=" " />
+                <Run
+                    FontWeight="Bold"
+                    Foreground="#FFFFFFFF"
+                    Text="F2" /><Run Text=" Save " />
+                <Run Text=" " />
+                <Run
+                    FontWeight="Bold"
+                    Foreground="#FFFFFFFF"
+                    Text="F3" /><Run Text=" Open " />
+                <Run Text=" " />
+                <Run
+                    FontWeight="Bold"
+                    Foreground="#FFFFFFFF"
+                    Text="Alt+F9" /><Run Text=" Compile " />
+                <Run Text=" " />
+                <Run
+                    FontWeight="Bold"
+                    Foreground="#FFFFFFFF"
+                    Text="F9" /><Run Text=" Make " />
+                <Run Text=" " />
+                <Run
+                    FontWeight="Bold"
+                    Foreground="#FFFFFFFF"
+                    Text="F10" /><Run Text=" Menu" />
+            </TextBlock>
+            <TextBlock
+                x:Name="StatusLineCol"
+                Grid.Column="1"
+                Margin="8,0"
+                VerticalAlignment="Center"
+                FontFamily="Consolas"
+                FontSize="12"
+                FontWeight="Bold"
+                Foreground="#FF000000"
+                Text="1:1" />
+        </Grid>
 
-        <!-- ≡ System Menu -->
-        <Popup x:Name="MenuPopup0" IsLightDismissEnabled="True" Closed="MenuPopup_Closed">
+        <!--  ═══════════════════════════════════════════════  -->
+        <!--  MENU DROPDOWN POPUPS  -->
+        <!--  TC3 style: gray bg, black outer border,  -->
+        <!--  solid black shadow, RED hotkey first letter  -->
+        <!--  ═══════════════════════════════════════════════  -->
+
+        <!--  ≡ System Menu  -->
+        <Popup
+            x:Name="MenuPopup0"
+            Closed="MenuPopup_Closed"
+            IsLightDismissEnabled="True">
             <Grid>
-                <Border Margin="2,2,0,0" Background="#FF000055" CornerRadius="0"/>
-                <Border Background="#FFAAAAAA" BorderBrush="#FF555555" BorderThickness="1" Margin="0,0,2,2" CornerRadius="0">
+                <Border
+                    Margin="3,3,0,0"
+                    Background="#FF000000"
+                    CornerRadius="0" />
+                <Border
+                    Margin="0,0,3,3"
+                    Background="#FFAAAAAA"
+                    BorderBrush="#FF000000"
+                    BorderThickness="1"
+                    CornerRadius="0">
                     <StackPanel MinWidth="180">
-                        <Button Content=" About...               " Style="{StaticResource DosMenuItemStyle}" Click="About_Click"/>
-                        <Border Height="1" Background="#FF555555" Margin="1,0"/>
-                        <Button Content=" Clear Desktop           " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Button Content=" Repaint Desktop         " Style="{StaticResource DosMenuItemStyle}"/>
+                        <Button Click="About_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="A" /><Run Text="bout...               " /></TextBlock>
+                        </Button>
+                        <Border
+                            Height="1"
+                            Margin="1,0"
+                            Background="#FF555555" />
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="C" /><Run Text="lear Desktop           " /></TextBlock>
+                        </Button>
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="R" /><Run Text="epaint Desktop         " /></TextBlock>
+                        </Button>
                     </StackPanel>
                 </Border>
             </Grid>
         </Popup>
 
-        <!-- File Menu -->
-        <Popup x:Name="MenuPopup1" IsLightDismissEnabled="True" Closed="MenuPopup_Closed">
+        <!--  File Menu  -->
+        <Popup
+            x:Name="MenuPopup1"
+            Closed="MenuPopup_Closed"
+            IsLightDismissEnabled="True">
             <Grid>
-                <Border Margin="2,2,0,0" Background="#FF000055" CornerRadius="0"/>
-                <Border Background="#FFAAAAAA" BorderBrush="#FF555555" BorderThickness="1" Margin="0,0,2,2" CornerRadius="0">
+                <Border
+                    Margin="3,3,0,0"
+                    Background="#FF000000"
+                    CornerRadius="0" />
+                <Border
+                    Margin="0,0,3,3"
+                    Background="#FFAAAAAA"
+                    BorderBrush="#FF000000"
+                    BorderThickness="1"
+                    CornerRadius="0">
                     <StackPanel MinWidth="220">
-                        <Button Content=" New                     " Style="{StaticResource DosMenuItemStyle}" Click="FileNew_Click"/>
-                        <Button Content=" Open...            F3   " Style="{StaticResource DosMenuItemStyle}" Click="FileOpen_Click"/>
-                        <Button Content=" Save              F2   " Style="{StaticResource DosMenuItemStyle}" Click="FileSave_Click"/>
-                        <Button Content=" Save as...              " Style="{StaticResource DosMenuItemStyle}" Click="FileSaveAs_Click"/>
-                        <Button Content=" Save all                " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Border Height="1" Background="#FF555555" Margin="1,0"/>
-                        <Button Content=" Change dir...           " Style="{StaticResource DosMenuItemStyle}" Click="ChangeDir_Click"/>
-                        <Button Content=" Print                   " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Button Content=" DOS shell               " Style="{StaticResource DosMenuItemStyle}" Click="DosShell_Click"/>
-                        <Border Height="1" Background="#FF555555" Margin="1,0"/>
-                        <Button Content=" Quit            Alt+X  " Style="{StaticResource DosMenuItemStyle}" Click="Quit_Click"/>
+                        <Button Click="FileNew_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="N" /><Run Text="ew                     " /></TextBlock>
+                        </Button>
+                        <Button Click="FileOpen_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="O" /><Run Text="pen...            F3   " /></TextBlock>
+                        </Button>
+                        <Button Click="FileSave_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="S" /><Run Text="ave               F2   " /></TextBlock>
+                        </Button>
+                        <Button Click="FileSaveAs_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" Save " /><Run Foreground="#FFFF0000" Text="a" /><Run Text="s...                  " /></TextBlock>
+                        </Button>
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" Save a" /><Run Foreground="#FFFF0000" Text="l" /><Run Text="l                    " /></TextBlock>
+                        </Button>
+                        <Border
+                            Height="1"
+                            Margin="1,0"
+                            Background="#FF555555" />
+                        <Button Click="ChangeDir_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="C" /><Run Text="hange dir...           " /></TextBlock>
+                        </Button>
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="P" /><Run Text="rint                   " /></TextBlock>
+                        </Button>
+                        <Button Click="DosShell_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="D" /><Run Text="OS shell               " /></TextBlock>
+                        </Button>
+                        <Border
+                            Height="1"
+                            Margin="1,0"
+                            Background="#FF555555" />
+                        <Button Click="Quit_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="Q" /><Run Text="uit            Alt+X  " /></TextBlock>
+                        </Button>
                     </StackPanel>
                 </Border>
             </Grid>
         </Popup>
 
-        <!-- Edit Menu -->
-        <Popup x:Name="MenuPopup2" IsLightDismissEnabled="True" Closed="MenuPopup_Closed">
+        <!--  Edit Menu  -->
+        <Popup
+            x:Name="MenuPopup2"
+            Closed="MenuPopup_Closed"
+            IsLightDismissEnabled="True">
             <Grid>
-                <Border Margin="2,2,0,0" Background="#FF000055" CornerRadius="0"/>
-                <Border Background="#FFAAAAAA" BorderBrush="#FF555555" BorderThickness="1" Margin="0,0,2,2" CornerRadius="0">
-                    <StackPanel MinWidth="250">
-                        <Button Content=" Undo          Ctrl+Z    " Style="{StaticResource DosMenuItemStyle}" Click="EditUndo_Click"/>
-                        <Button Content=" Redo          Ctrl+Y    " Style="{StaticResource DosMenuItemStyle}" Click="EditRedo_Click"/>
-                        <Border Height="1" Background="#FF555555" Margin="1,0"/>
-                        <Button Content=" Cut         Shift+Del   " Style="{StaticResource DosMenuItemStyle}" Click="EditCut_Click"/>
-                        <Button Content=" Copy        Ctrl+Ins    " Style="{StaticResource DosMenuItemStyle}" Click="EditCopy_Click"/>
-                        <Button Content=" Paste       Shift+Ins   " Style="{StaticResource DosMenuItemStyle}" Click="EditPaste_Click"/>
-                        <Button Content=" Clear        Ctrl+Del   " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Border Height="1" Background="#FF555555" Margin="1,0"/>
-                        <Button Content=" Copy example            " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Button Content=" Show clipboard          " Style="{StaticResource DosMenuItemStyle}"/>
-                    </StackPanel>
-                </Border>
-            </Grid>
-        </Popup>
-
-        <!-- Search Menu -->
-        <Popup x:Name="MenuPopup3" IsLightDismissEnabled="True" Closed="MenuPopup_Closed">
-            <Grid>
-                <Border Margin="2,2,0,0" Background="#FF000055" CornerRadius="0"/>
-                <Border Background="#FFAAAAAA" BorderBrush="#FF555555" BorderThickness="1" Margin="0,0,2,2" CornerRadius="0">
+                <Border
+                    Margin="3,3,0,0"
+                    Background="#FF000000"
+                    CornerRadius="0" />
+                <Border
+                    Margin="0,0,3,3"
+                    Background="#FFAAAAAA"
+                    BorderBrush="#FF000000"
+                    BorderThickness="1"
+                    CornerRadius="0">
                     <StackPanel MinWidth="260">
-                        <Button Content=" Find...                  " Style="{StaticResource DosMenuItemStyle}" Click="SearchFind_Click"/>
-                        <Button Content=" Replace...               " Style="{StaticResource DosMenuItemStyle}" Click="SearchReplace_Click"/>
-                        <Button Content=" Search again             " Style="{StaticResource DosMenuItemStyle}" Click="SearchAgain_Click"/>
-                        <Border Height="1" Background="#FF555555" Margin="1,0"/>
-                        <Button Content=" Go to line number...     " Style="{StaticResource DosMenuItemStyle}" Click="GoToLine_Click"/>
-                        <Border Height="1" Background="#FF555555" Margin="1,0"/>
-                        <Button Content=" Find procedure...        " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Button Content=" Find error               " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Button Content=" Previous error    Alt+F7 " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Button Content=" Next error        Alt+F8 " Style="{StaticResource DosMenuItemStyle}" Click="NextError_Click"/>
+                        <Button Click="EditUndo_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="U" /><Run Text="ndo           Ctrl+Z    " /></TextBlock>
+                        </Button>
+                        <Button Click="EditRedo_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="R" /><Run Text="edo           Ctrl+Y    " /></TextBlock>
+                        </Button>
+                        <Border
+                            Height="1"
+                            Margin="1,0"
+                            Background="#FF555555" />
+                        <Button Click="EditCut_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" Cu" /><Run Foreground="#FFFF0000" Text="t" /><Run Text="          Shift+Del   " /></TextBlock>
+                        </Button>
+                        <Button Click="EditCopy_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="C" /><Run Text="opy         Ctrl+Ins    " /></TextBlock>
+                        </Button>
+                        <Button Click="EditPaste_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="P" /><Run Text="aste        Shift+Ins   " /></TextBlock>
+                        </Button>
+                        <Button Click="EditClear_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" C" /><Run Foreground="#FFFF0000" Text="l" /><Run Text="ear         Ctrl+Del   " /></TextBlock>
+                        </Button>
+                        <Border
+                            Height="1"
+                            Margin="1,0"
+                            Background="#FF555555" />
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" Copy " /><Run Foreground="#FFFF0000" Text="e" /><Run Text="xample                " /></TextBlock>
+                        </Button>
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="S" /><Run Text="how clipboard            " /></TextBlock>
+                        </Button>
                     </StackPanel>
                 </Border>
             </Grid>
         </Popup>
 
-        <!-- Run Menu -->
-        <Popup x:Name="MenuPopup4" IsLightDismissEnabled="True" Closed="MenuPopup_Closed">
+        <!--  Search Menu  -->
+        <Popup
+            x:Name="MenuPopup3"
+            Closed="MenuPopup_Closed"
+            IsLightDismissEnabled="True">
             <Grid>
-                <Border Margin="2,2,0,0" Background="#FF000055" CornerRadius="0"/>
-                <Border Background="#FFAAAAAA" BorderBrush="#FF555555" BorderThickness="1" Margin="0,0,2,2" CornerRadius="0">
-                    <StackPanel MinWidth="250">
-                        <Button Content=" Run            Ctrl+F9  " Style="{StaticResource DosMenuItemStyle}" Click="RunProgram_Click"/>
-                        <Button Content=" Program reset  Ctrl+F2  " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Button Content=" Go to cursor      F4    " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Button Content=" Trace into        F7    " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Button Content=" Step over         F8    " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Border Height="1" Background="#FF555555" Margin="1,0"/>
-                        <Button Content=" Arguments...             " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Button Content=" User screen    Alt+F5   " Style="{StaticResource DosMenuItemStyle}" Click="UserScreen_Click"/>
+                <Border
+                    Margin="3,3,0,0"
+                    Background="#FF000000"
+                    CornerRadius="0" />
+                <Border
+                    Margin="0,0,3,3"
+                    Background="#FFAAAAAA"
+                    BorderBrush="#FF000000"
+                    BorderThickness="1"
+                    CornerRadius="0">
+                    <StackPanel MinWidth="280">
+                        <Button Click="SearchFind_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="F" /><Run Text="ind...                    " /></TextBlock>
+                        </Button>
+                        <Button Click="SearchReplace_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="R" /><Run Text="eplace...                 " /></TextBlock>
+                        </Button>
+                        <Button Click="SearchAgain_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="S" /><Run Text="earch again               " /></TextBlock>
+                        </Button>
+                        <Border
+                            Height="1"
+                            Margin="1,0"
+                            Background="#FF555555" />
+                        <Button Click="GoToLine_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="G" /><Run Text="o to line number...       " /></TextBlock>
+                        </Button>
+                        <Border
+                            Height="1"
+                            Margin="1,0"
+                            Background="#FF555555" />
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" Find " /><Run Foreground="#FFFF0000" Text="p" /><Run Text="rocedure...              " /></TextBlock>
+                        </Button>
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" Find " /><Run Foreground="#FFFF0000" Text="e" /><Run Text="rror                     " /></TextBlock>
+                        </Button>
+                        <Button Click="PreviousError_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="P" /><Run Text="revious error    Alt+F7   " /></TextBlock>
+                        </Button>
+                        <Button Click="NextError_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="N" /><Run Text="ext error        Alt+F8   " /></TextBlock>
+                        </Button>
                     </StackPanel>
                 </Border>
             </Grid>
         </Popup>
 
-        <!-- Compile Menu -->
-        <Popup x:Name="MenuPopup5" IsLightDismissEnabled="True" Closed="MenuPopup_Closed">
+        <!--  Run Menu  -->
+        <Popup
+            x:Name="MenuPopup4"
+            Closed="MenuPopup_Closed"
+            IsLightDismissEnabled="True">
             <Grid>
-                <Border Margin="2,2,0,0" Background="#FF000055" CornerRadius="0"/>
-                <Border Background="#FFAAAAAA" BorderBrush="#FF555555" BorderThickness="1" Margin="0,0,2,2" CornerRadius="0">
+                <Border
+                    Margin="3,3,0,0"
+                    Background="#FF000000"
+                    CornerRadius="0" />
+                <Border
+                    Margin="0,0,3,3"
+                    Background="#FFAAAAAA"
+                    BorderBrush="#FF000000"
+                    BorderThickness="1"
+                    CornerRadius="0">
                     <StackPanel MinWidth="260">
-                        <Button Content=" Compile to OBJ  Alt+F9  " Style="{StaticResource DosMenuItemStyle}" Click="Compile_Click"/>
-                        <Button Content=" Make EXE          F9    " Style="{StaticResource DosMenuItemStyle}" Click="Make_Click"/>
-                        <Button Content=" Link EXE file           " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Button Content=" Build all               " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Border Height="1" Background="#FF555555" Margin="1,0"/>
-                        <Button Content=" Primary C file...       " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Button Content=" Get info                " Style="{StaticResource DosMenuItemStyle}"/>
+                        <Button Click="RunProgram_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="R" /><Run Text="un            Ctrl+F9  " /></TextBlock>
+                        </Button>
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="P" /><Run Text="rogram reset  Ctrl+F2  " /></TextBlock>
+                        </Button>
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="G" /><Run Text="o to cursor      F4    " /></TextBlock>
+                        </Button>
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="T" /><Run Text="race into        F7    " /></TextBlock>
+                        </Button>
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="S" /><Run Text="tep over         F8    " /></TextBlock>
+                        </Button>
+                        <Border
+                            Height="1"
+                            Margin="1,0"
+                            Background="#FF555555" />
+                        <Button Click="RunArguments_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="A" /><Run Text="rguments...             " /></TextBlock>
+                        </Button>
+                        <Button Click="UserScreen_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="U" /><Run Text="ser screen    Alt+F5   " /></TextBlock>
+                        </Button>
                     </StackPanel>
                 </Border>
             </Grid>
         </Popup>
 
-        <!-- Debug Menu -->
-        <Popup x:Name="MenuPopup6" IsLightDismissEnabled="True" Closed="MenuPopup_Closed">
+        <!--  Compile Menu  -->
+        <Popup
+            x:Name="MenuPopup5"
+            Closed="MenuPopup_Closed"
+            IsLightDismissEnabled="True">
             <Grid>
-                <Border Margin="2,2,0,0" Background="#FF000055" CornerRadius="0"/>
-                <Border Background="#FFAAAAAA" BorderBrush="#FF555555" BorderThickness="1" Margin="0,0,2,2" CornerRadius="0">
-                    <StackPanel MinWidth="260">
-                        <Button Content=" Evaluate/modify Ctrl+F4 " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Button Content=" Watches                 " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Button Content=" Toggle breakpoint Ctrl+F8" Style="{StaticResource DosMenuItemStyle}"/>
-                        <Button Content=" Breakpoints...          " Style="{StaticResource DosMenuItemStyle}"/>
+                <Border
+                    Margin="3,3,0,0"
+                    Background="#FF000000"
+                    CornerRadius="0" />
+                <Border
+                    Margin="0,0,3,3"
+                    Background="#FFAAAAAA"
+                    BorderBrush="#FF000000"
+                    BorderThickness="1"
+                    CornerRadius="0">
+                    <StackPanel MinWidth="280">
+                        <Button Click="Compile_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" Compile to " /><Run Foreground="#FFFF0000" Text="O" /><Run Text="BJ  Alt+F9  " /></TextBlock>
+                        </Button>
+                        <Button Click="Make_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="M" /><Run Text="ake EXE          F9    " /></TextBlock>
+                        </Button>
+                        <Button Click="LinkExe_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="L" /><Run Text="ink EXE file           " /></TextBlock>
+                        </Button>
+                        <Button Click="BuildAll_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="B" /><Run Text="uild all               " /></TextBlock>
+                        </Button>
+                        <Border
+                            Height="1"
+                            Margin="1,0"
+                            Background="#FF555555" />
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="P" /><Run Text="rimary C file...       " /></TextBlock>
+                        </Button>
+                        <Button Click="GetInfo_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="G" /><Run Text="et info                " /></TextBlock>
+                        </Button>
                     </StackPanel>
                 </Border>
             </Grid>
         </Popup>
 
-        <!-- Project Menu -->
-        <Popup x:Name="MenuPopup7" IsLightDismissEnabled="True" Closed="MenuPopup_Closed">
+        <!--  Debug Menu  -->
+        <Popup
+            x:Name="MenuPopup6"
+            Closed="MenuPopup_Closed"
+            IsLightDismissEnabled="True">
             <Grid>
-                <Border Margin="2,2,0,0" Background="#FF000055" CornerRadius="0"/>
-                <Border Background="#FFAAAAAA" BorderBrush="#FF555555" BorderThickness="1" Margin="0,0,2,2" CornerRadius="0">
-                    <StackPanel MinWidth="220">
-                        <Button Content=" Open project...         " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Button Content=" Close project           " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Border Height="1" Background="#FF555555" Margin="1,0"/>
-                        <Button Content=" Add item...             " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Button Content=" Delete item             " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Border Height="1" Background="#FF555555" Margin="1,0"/>
-                        <Button Content=" Local options...        " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Button Content=" Include files...        " Style="{StaticResource DosMenuItemStyle}"/>
+                <Border
+                    Margin="3,3,0,0"
+                    Background="#FF000000"
+                    CornerRadius="0" />
+                <Border
+                    Margin="0,0,3,3"
+                    Background="#FFAAAAAA"
+                    BorderBrush="#FF000000"
+                    BorderThickness="1"
+                    CornerRadius="0">
+                    <StackPanel MinWidth="280">
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="E" /><Run Text="valuate/modify Ctrl+F4 " /></TextBlock>
+                        </Button>
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="W" /><Run Text="atches                 " /></TextBlock>
+                        </Button>
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="T" /><Run Text="oggle breakpoint Ctrl+F8" /></TextBlock>
+                        </Button>
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="B" /><Run Text="reakpoints...          " /></TextBlock>
+                        </Button>
                     </StackPanel>
                 </Border>
             </Grid>
         </Popup>
 
-        <!-- Options Menu -->
-        <Popup x:Name="MenuPopup8" IsLightDismissEnabled="True" Closed="MenuPopup_Closed">
+        <!--  Project Menu  -->
+        <Popup
+            x:Name="MenuPopup7"
+            Closed="MenuPopup_Closed"
+            IsLightDismissEnabled="True">
             <Grid>
-                <Border Margin="2,2,0,0" Background="#FF000055" CornerRadius="0"/>
-                <Border Background="#FFAAAAAA" BorderBrush="#FF555555" BorderThickness="1" Margin="0,0,2,2" CornerRadius="0">
-                    <StackPanel MinWidth="220">
-                        <Button Content=" Compiler...             " Style="{StaticResource DosMenuItemStyle}" Click="OptionsCompiler_Click"/>
-                        <Button Content=" Linker...               " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Button Content=" Make...                 " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Border Height="1" Background="#FF555555" Margin="1,0"/>
-                        <Button Content=" Directories...          " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Button Content=" Arguments...            " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Button Content=" Environment             " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Border Height="1" Background="#FF555555" Margin="1,0"/>
-                        <Button Content=" Save options...         " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Button Content=" Retrieve options...     " Style="{StaticResource DosMenuItemStyle}"/>
+                <Border
+                    Margin="3,3,0,0"
+                    Background="#FF000000"
+                    CornerRadius="0" />
+                <Border
+                    Margin="0,0,3,3"
+                    Background="#FFAAAAAA"
+                    BorderBrush="#FF000000"
+                    BorderThickness="1"
+                    CornerRadius="0">
+                    <StackPanel MinWidth="240">
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="O" /><Run Text="pen project...         " /></TextBlock>
+                        </Button>
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="C" /><Run Text="lose project           " /></TextBlock>
+                        </Button>
+                        <Border
+                            Height="1"
+                            Margin="1,0"
+                            Background="#FF555555" />
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="A" /><Run Text="dd item...             " /></TextBlock>
+                        </Button>
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="D" /><Run Text="elete item             " /></TextBlock>
+                        </Button>
+                        <Border
+                            Height="1"
+                            Margin="1,0"
+                            Background="#FF555555" />
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="L" /><Run Text="ocal options...        " /></TextBlock>
+                        </Button>
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="I" /><Run Text="nclude files...        " /></TextBlock>
+                        </Button>
                     </StackPanel>
                 </Border>
             </Grid>
         </Popup>
 
-        <!-- Window Menu -->
-        <Popup x:Name="MenuPopup9" IsLightDismissEnabled="True" Closed="MenuPopup_Closed">
+        <!--  Options Menu  -->
+        <Popup
+            x:Name="MenuPopup8"
+            Closed="MenuPopup_Closed"
+            IsLightDismissEnabled="True">
             <Grid>
-                <Border Margin="2,2,0,0" Background="#FF000055" CornerRadius="0"/>
-                <Border Background="#FFAAAAAA" BorderBrush="#FF555555" BorderThickness="1" Margin="0,0,2,2" CornerRadius="0">
-                    <StackPanel MinWidth="260">
-                        <Button Content=" Size/Move    Ctrl+F5    " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Button Content=" Zoom            F5      " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Button Content=" Tile                    " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Button Content=" Cascade                 " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Button Content=" Next              F6    " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Button Content=" Previous       Shift+F6 " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Button Content=" Close          Alt+F3   " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Border Height="1" Background="#FF555555" Margin="1,0"/>
-                        <Button Content=" List all...    Alt+0    " Style="{StaticResource DosMenuItemStyle}" Click="WindowList_Click"/>
-                        <Border Height="1" Background="#FF555555" Margin="1,0"/>
-                        <Button Content=" Message                 " Style="{StaticResource DosMenuItemStyle}" Click="ToggleMessageWindow_Click"/>
-                        <Button Content=" Output                  " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Button Content=" Watch                   " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Button Content=" User screen    Alt+F5   " Style="{StaticResource DosMenuItemStyle}"/>
+                <Border
+                    Margin="3,3,0,0"
+                    Background="#FF000000"
+                    CornerRadius="0" />
+                <Border
+                    Margin="0,0,3,3"
+                    Background="#FFAAAAAA"
+                    BorderBrush="#FF000000"
+                    BorderThickness="1"
+                    CornerRadius="0">
+                    <StackPanel MinWidth="240">
+                        <Button Click="OptionsCompiler_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="C" /><Run Text="ompiler...             " /></TextBlock>
+                        </Button>
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="L" /><Run Text="inker...               " /></TextBlock>
+                        </Button>
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="M" /><Run Text="ake...                 " /></TextBlock>
+                        </Button>
+                        <Border
+                            Height="1"
+                            Margin="1,0"
+                            Background="#FF555555" />
+                        <Button Click="OptionsDirectories_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="D" /><Run Text="irectories...          " /></TextBlock>
+                        </Button>
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="A" /><Run Text="rguments...            " /></TextBlock>
+                        </Button>
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="E" /><Run Text="nvironment             " /></TextBlock>
+                        </Button>
+                        <Border
+                            Height="1"
+                            Margin="1,0"
+                            Background="#FF555555" />
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="S" /><Run Text="ave options...         " /></TextBlock>
+                        </Button>
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="R" /><Run Text="etrieve options...     " /></TextBlock>
+                        </Button>
                     </StackPanel>
                 </Border>
             </Grid>
         </Popup>
 
-        <!-- Help Menu -->
-        <Popup x:Name="MenuPopup10" IsLightDismissEnabled="True" Closed="MenuPopup_Closed">
+        <!--  Window Menu  -->
+        <Popup
+            x:Name="MenuPopup9"
+            Closed="MenuPopup_Closed"
+            IsLightDismissEnabled="True">
             <Grid>
-                <Border Margin="2,2,0,0" Background="#FF000055" CornerRadius="0"/>
-                <Border Background="#FFAAAAAA" BorderBrush="#FF555555" BorderThickness="1" Margin="0,0,2,2" CornerRadius="0">
-                    <StackPanel MinWidth="250">
-                        <Button Content=" Contents           F1   " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Button Content=" Index          Shift+F1 " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Button Content=" Topic search   Ctrl+F1  " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Button Content=" Previous topic Alt+F1   " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Border Height="1" Background="#FF555555" Margin="1,0"/>
-                        <Button Content=" Help on help            " Style="{StaticResource DosMenuItemStyle}"/>
-                        <Border Height="1" Background="#FF555555" Margin="1,0"/>
-                        <Button Content=" About...                " Style="{StaticResource DosMenuItemStyle}" Click="About_Click"/>
+                <Border
+                    Margin="3,3,0,0"
+                    Background="#FF000000"
+                    CornerRadius="0" />
+                <Border
+                    Margin="0,0,3,3"
+                    Background="#FFAAAAAA"
+                    BorderBrush="#FF000000"
+                    BorderThickness="1"
+                    CornerRadius="0">
+                    <StackPanel MinWidth="280">
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="S" /><Run Text="ize/Move    Ctrl+F5    " /></TextBlock>
+                        </Button>
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="Z" /><Run Text="oom            F5      " /></TextBlock>
+                        </Button>
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="T" /><Run Text="ile                    " /></TextBlock>
+                        </Button>
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="C" /><Run Text="ascade                 " /></TextBlock>
+                        </Button>
+                        <Button Click="WindowNext_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="N" /><Run Text="ext              F6    " /></TextBlock>
+                        </Button>
+                        <Button Click="WindowPrevious_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="P" /><Run Text="revious       Shift+F6 " /></TextBlock>
+                        </Button>
+                        <Button Click="WindowClose_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" Cl" /><Run Foreground="#FFFF0000" Text="o" /><Run Text="se          Alt+F3   " /></TextBlock>
+                        </Button>
+                        <Button Click="WindowCloseAll_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" Close a" /><Run Foreground="#FFFF0000" Text="l" /><Run Text="l               " /></TextBlock>
+                        </Button>
+                        <Border
+                            Height="1"
+                            Margin="1,0"
+                            Background="#FF555555" />
+                        <Button Click="ToggleMessageWindow_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="M" /><Run Text="essage                 " /></TextBlock>
+                        </Button>
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="O" /><Run Text="utput                  " /></TextBlock>
+                        </Button>
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="W" /><Run Text="atch                   " /></TextBlock>
+                        </Button>
+                        <Button Click="UserScreen_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="U" /><Run Text="ser screen    Alt+F5   " /></TextBlock>
+                        </Button>
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="R" /><Run Text="egister                " /></TextBlock>
+                        </Button>
+                        <Button IsEnabled="False" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" Project                " /></TextBlock>
+                        </Button>
+                        <Button IsEnabled="False" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" Project notes          " /></TextBlock>
+                        </Button>
+                        <Border
+                            Height="1"
+                            Margin="1,0"
+                            Background="#FF555555" />
+                        <Button Click="WindowList_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="L" /><Run Text="ist all...    Alt+0    " /></TextBlock>
+                        </Button>
                     </StackPanel>
                 </Border>
             </Grid>
         </Popup>
 
-        <!-- ═══════════════════════════════════════════════ -->
-        <!-- DIALOG OVERLAYS — inline panels, no WinUI      -->
-        <!-- ContentDialog. Pure DOS-styled.                 -->
-        <!-- ═══════════════════════════════════════════════ -->
+        <!--  Help Menu  -->
+        <Popup
+            x:Name="MenuPopup10"
+            Closed="MenuPopup_Closed"
+            IsLightDismissEnabled="True">
+            <Grid>
+                <Border
+                    Margin="3,3,0,0"
+                    Background="#FF000000"
+                    CornerRadius="0" />
+                <Border
+                    Margin="0,0,3,3"
+                    Background="#FFAAAAAA"
+                    BorderBrush="#FF000000"
+                    BorderThickness="1"
+                    CornerRadius="0">
+                    <StackPanel MinWidth="270">
+                        <Button Click="HelpContents_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="C" /><Run Text="ontents           F1   " /></TextBlock>
+                        </Button>
+                        <Button Click="HelpIndex_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="I" /><Run Text="ndex          Shift+F1 " /></TextBlock>
+                        </Button>
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="T" /><Run Text="opic search   Ctrl+F1  " /></TextBlock>
+                        </Button>
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="P" /><Run Text="revious topic Alt+F1   " /></TextBlock>
+                        </Button>
+                        <Border
+                            Height="1"
+                            Margin="1,0"
+                            Background="#FF555555" />
+                        <Button Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="H" /><Run Text="elp on help            " /></TextBlock>
+                        </Button>
+                        <Border
+                            Height="1"
+                            Margin="1,0"
+                            Background="#FF555555" />
+                        <Button Click="About_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="A" /><Run Text="bout...                " /></TextBlock>
+                        </Button>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Popup>
 
-        <!-- FIND / REPLACE DIALOG -->
-        <Grid x:Name="FindDialogOverlay" Grid.RowSpan="5" Visibility="Collapsed" Background="Transparent">
+        <!--  ═══════════════════════════════════════════════  -->
+        <!--  DIALOG OVERLAYS — inline panels, no WinUI  -->
+        <!--  ContentDialog. Pure DOS-styled.  -->
+        <!--  ═══════════════════════════════════════════════  -->
+
+        <!--  FIND / REPLACE DIALOG  -->
+        <Grid
+            x:Name="FindDialogOverlay"
+            Grid.RowSpan="3"
+            Background="Transparent"
+            Visibility="Collapsed">
             <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
-                <!-- Drop shadow -->
-                <Border Margin="4,4,0,0" Background="#FF000055" CornerRadius="0"/>
-                <!-- Dialog box -->
-                <Border Background="#FF0000AA" BorderBrush="#FF00AAAA" BorderThickness="2"
-                        Margin="0,0,4,4" CornerRadius="0" Padding="12">
-                    <StackPanel Spacing="10" MinWidth="380">
-                        <TextBlock Text="╔═══ Find ═══╗" FontFamily="Consolas" FontSize="14"
-                                   Foreground="#FF00AAAA" HorizontalAlignment="Center" FontWeight="Bold"/>
+                <Border
+                    Margin="4,4,0,0"
+                    Background="#FF000000"
+                    CornerRadius="0" />
+                <Border
+                    Margin="0,0,4,4"
+                    Padding="12"
+                    Background="#FF0000AA"
+                    BorderBrush="#FF00AAAA"
+                    BorderThickness="2"
+                    CornerRadius="0">
+                    <StackPanel MinWidth="380" Spacing="10">
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            FontFamily="Consolas"
+                            FontSize="14"
+                            FontWeight="Bold"
+                            Foreground="#FF00AAAA"
+                            Text="╔═══ Find ═══╗" />
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <TextBlock Text="Search for:" FontFamily="Consolas" FontSize="13"
-                                       Foreground="#FFFFFF55" Width="85" VerticalAlignment="Center"/>
-                            <TextBox x:Name="DlgFindSearchBox" Width="250"
-                                     FontFamily="Consolas" FontSize="13"
-                                     Background="#FF000055" Foreground="#FFFFFFFF"
-                                     BorderBrush="#FF00AAAA" BorderThickness="1"
-                                     CornerRadius="0" Padding="4,2"/>
+                            <TextBlock
+                                Width="85"
+                                VerticalAlignment="Center"
+                                FontFamily="Consolas"
+                                FontSize="13"
+                                Foreground="#FFFFFF55"
+                                Text="Search for:" />
+                            <TextBox
+                                x:Name="DlgFindSearchBox"
+                                Width="250"
+                                Padding="4,2"
+                                Background="#FF000055"
+                                BorderBrush="#FF00AAAA"
+                                BorderThickness="1"
+                                CornerRadius="0"
+                                FontFamily="Consolas"
+                                FontSize="13"
+                                Foreground="#FFFFFFFF" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <TextBlock Text="Replace :" FontFamily="Consolas" FontSize="13"
-                                       Foreground="#FFFFFF55" Width="85" VerticalAlignment="Center"/>
-                            <TextBox x:Name="DlgFindReplaceBox" Width="250"
-                                     FontFamily="Consolas" FontSize="13"
-                                     Background="#FF000055" Foreground="#FFFFFFFF"
-                                     BorderBrush="#FF00AAAA" BorderThickness="1"
-                                     CornerRadius="0" Padding="4,2"/>
+                            <TextBlock
+                                Width="85"
+                                VerticalAlignment="Center"
+                                FontFamily="Consolas"
+                                FontSize="13"
+                                Foreground="#FFFFFF55"
+                                Text="Replace :" />
+                            <TextBox
+                                x:Name="DlgFindReplaceBox"
+                                Width="250"
+                                Padding="4,2"
+                                Background="#FF000055"
+                                BorderBrush="#FF00AAAA"
+                                BorderThickness="1"
+                                CornerRadius="0"
+                                FontFamily="Consolas"
+                                FontSize="13"
+                                Foreground="#FFFFFFFF" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="16">
-                            <CheckBox x:Name="DlgFindCaseCheck" Foreground="#FFFFFFFF"
-                                      FontFamily="Consolas" FontSize="12">
-                                <TextBlock Text="Case sensitive" FontFamily="Consolas" FontSize="12"
-                                           Foreground="#FFFFFFFF"/>
+                            <CheckBox
+                                x:Name="DlgFindCaseCheck"
+                                FontFamily="Consolas"
+                                FontSize="12"
+                                Foreground="#FFFFFFFF">
+                                <TextBlock
+                                    FontFamily="Consolas"
+                                    FontSize="12"
+                                    Foreground="#FFFFFFFF"
+                                    Text="Case sensitive" />
                             </CheckBox>
-                            <CheckBox x:Name="DlgFindWholeWordCheck" Foreground="#FFFFFFFF"
-                                      FontFamily="Consolas" FontSize="12">
-                                <TextBlock Text="Whole words" FontFamily="Consolas" FontSize="12"
-                                           Foreground="#FFFFFFFF"/>
+                            <CheckBox
+                                x:Name="DlgFindWholeWordCheck"
+                                FontFamily="Consolas"
+                                FontSize="12"
+                                Foreground="#FFFFFFFF">
+                                <TextBlock
+                                    FontFamily="Consolas"
+                                    FontSize="12"
+                                    Foreground="#FFFFFFFF"
+                                    Text="Whole words" />
                             </CheckBox>
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-                            <Button Content="  OK  " Style="{StaticResource DosDialogButtonStyle}" Click="DlgFind_OK"/>
-                            <Button Content="Replace All" Style="{StaticResource DosDialogButtonStyle}" Click="DlgFind_ReplaceAll"/>
-                            <Button Content="Cancel" Style="{StaticResource DosDialogButtonStyle}" Click="DlgFind_Cancel"/>
+                        <StackPanel
+                            HorizontalAlignment="Center"
+                            Orientation="Horizontal"
+                            Spacing="8">
+                            <Button
+                                Click="DlgFind_OK"
+                                Content="  OK  "
+                                Style="{StaticResource DosDialogButtonStyle}" />
+                            <Button
+                                Click="DlgFind_ReplaceAll"
+                                Content="Replace All"
+                                Style="{StaticResource DosDialogButtonStyle}" />
+                            <Button
+                                Click="DlgFind_Cancel"
+                                Content="Cancel"
+                                Style="{StaticResource DosDialogButtonStyle}" />
                         </StackPanel>
                     </StackPanel>
                 </Border>
             </Grid>
         </Grid>
 
-        <!-- GO TO LINE DIALOG -->
-        <Grid x:Name="GoToLineDialogOverlay" Grid.RowSpan="5" Visibility="Collapsed" Background="Transparent">
+        <!--  GO TO LINE DIALOG  -->
+        <Grid
+            x:Name="GoToLineDialogOverlay"
+            Grid.RowSpan="3"
+            Background="Transparent"
+            Visibility="Collapsed">
             <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
-                <Border Margin="4,4,0,0" Background="#FF000055" CornerRadius="0"/>
-                <Border Background="#FF0000AA" BorderBrush="#FF00AAAA" BorderThickness="2"
-                        Margin="0,0,4,4" CornerRadius="0" Padding="12">
-                    <StackPanel Spacing="10" MinWidth="300">
-                        <TextBlock Text="╔═ Go to Line Number ═╗" FontFamily="Consolas" FontSize="14"
-                                   Foreground="#FF00AAAA" HorizontalAlignment="Center" FontWeight="Bold"/>
+                <Border
+                    Margin="4,4,0,0"
+                    Background="#FF000000"
+                    CornerRadius="0" />
+                <Border
+                    Margin="0,0,4,4"
+                    Padding="12"
+                    Background="#FF0000AA"
+                    BorderBrush="#FF00AAAA"
+                    BorderThickness="2"
+                    CornerRadius="0">
+                    <StackPanel MinWidth="300" Spacing="10">
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            FontFamily="Consolas"
+                            FontSize="14"
+                            FontWeight="Bold"
+                            Foreground="#FF00AAAA"
+                            Text="╔═ Go to Line Number ═╗" />
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <TextBlock Text="Line #:" FontFamily="Consolas" FontSize="13"
-                                       Foreground="#FFFFFF55" VerticalAlignment="Center"/>
-                            <TextBox x:Name="DlgGoToLineBox" Width="100"
-                                     FontFamily="Consolas" FontSize="13"
-                                     Background="#FF000055" Foreground="#FFFFFFFF"
-                                     BorderBrush="#FF00AAAA" BorderThickness="1"
-                                     CornerRadius="0" Padding="4,2" InputScope="Number"/>
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontFamily="Consolas"
+                                FontSize="13"
+                                Foreground="#FFFFFF55"
+                                Text="Line #:" />
+                            <TextBox
+                                x:Name="DlgGoToLineBox"
+                                Width="100"
+                                Padding="4,2"
+                                Background="#FF000055"
+                                BorderBrush="#FF00AAAA"
+                                BorderThickness="1"
+                                CornerRadius="0"
+                                FontFamily="Consolas"
+                                FontSize="13"
+                                Foreground="#FFFFFFFF"
+                                InputScope="Number" />
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-                            <Button Content="  OK  " Style="{StaticResource DosDialogButtonStyle}" Click="DlgGoToLine_OK"/>
-                            <Button Content="Cancel" Style="{StaticResource DosDialogButtonStyle}" Click="DlgGoToLine_Cancel"/>
+                        <StackPanel
+                            HorizontalAlignment="Center"
+                            Orientation="Horizontal"
+                            Spacing="8">
+                            <Button
+                                Click="DlgGoToLine_OK"
+                                Content="  OK  "
+                                Style="{StaticResource DosDialogButtonStyle}" />
+                            <Button
+                                Click="DlgGoToLine_Cancel"
+                                Content="Cancel"
+                                Style="{StaticResource DosDialogButtonStyle}" />
                         </StackPanel>
                     </StackPanel>
                 </Border>
             </Grid>
         </Grid>
 
-        <!-- COMPILER OPTIONS DIALOG -->
-        <Grid x:Name="CompilerDialogOverlay" Grid.RowSpan="5" Visibility="Collapsed" Background="Transparent">
+        <!--  COMPILER OPTIONS DIALOG  -->
+        <Grid
+            x:Name="CompilerDialogOverlay"
+            Grid.RowSpan="3"
+            Background="Transparent"
+            Visibility="Collapsed">
             <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
-                <Border Margin="4,4,0,0" Background="#FF000055" CornerRadius="0"/>
-                <Border Background="#FF0000AA" BorderBrush="#FF00AAAA" BorderThickness="2"
-                        Margin="0,0,4,4" CornerRadius="0" Padding="12">
-                    <StackPanel Spacing="8" MinWidth="420">
-                        <TextBlock Text="╔══ Compiler Options ══╗" FontFamily="Consolas" FontSize="14"
-                                   Foreground="#FF00AAAA" HorizontalAlignment="Center" FontWeight="Bold"/>
+                <Border
+                    Margin="4,4,0,0"
+                    Background="#FF000000"
+                    CornerRadius="0" />
+                <Border
+                    Margin="0,0,4,4"
+                    Padding="12"
+                    Background="#FF0000AA"
+                    BorderBrush="#FF00AAAA"
+                    BorderThickness="2"
+                    CornerRadius="0">
+                    <StackPanel MinWidth="420" Spacing="8">
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            FontFamily="Consolas"
+                            FontSize="14"
+                            FontWeight="Bold"
+                            Foreground="#FF00AAAA"
+                            Text="╔══ Compiler Options ══╗" />
                         <StackPanel Spacing="3">
-                            <TextBlock Text="Compiler path:" FontFamily="Consolas" FontSize="12" Foreground="#FFFFFF55"/>
-                            <TextBox x:Name="DlgCompilerPath" FontFamily="Consolas" FontSize="12"
-                                     Background="#FF000055" Foreground="#FFFFFFFF"
-                                     BorderBrush="#FF00AAAA" BorderThickness="1" CornerRadius="0"
-                                     PlaceholderText="auto-detect"/>
+                            <TextBlock
+                                FontFamily="Consolas"
+                                FontSize="12"
+                                Foreground="#FFFFFF55"
+                                Text="Compiler path:" />
+                            <TextBox
+                                x:Name="DlgCompilerPath"
+                                Background="#FF000055"
+                                BorderBrush="#FF00AAAA"
+                                BorderThickness="1"
+                                CornerRadius="0"
+                                FontFamily="Consolas"
+                                FontSize="12"
+                                Foreground="#FFFFFFFF"
+                                PlaceholderText="auto-detect" />
                         </StackPanel>
                         <StackPanel Spacing="3">
-                            <TextBlock Text="Include dirs (;-separated):" FontFamily="Consolas" FontSize="12" Foreground="#FFFFFF55"/>
-                            <TextBox x:Name="DlgIncludeDirs" FontFamily="Consolas" FontSize="12"
-                                     Background="#FF000055" Foreground="#FFFFFFFF"
-                                     BorderBrush="#FF00AAAA" BorderThickness="1" CornerRadius="0"/>
+                            <TextBlock
+                                FontFamily="Consolas"
+                                FontSize="12"
+                                Foreground="#FFFFFF55"
+                                Text="Include dirs (;-separated):" />
+                            <TextBox
+                                x:Name="DlgIncludeDirs"
+                                Background="#FF000055"
+                                BorderBrush="#FF00AAAA"
+                                BorderThickness="1"
+                                CornerRadius="0"
+                                FontFamily="Consolas"
+                                FontSize="12"
+                                Foreground="#FFFFFFFF" />
                         </StackPanel>
                         <StackPanel Spacing="3">
-                            <TextBlock Text="Library dirs (;-separated):" FontFamily="Consolas" FontSize="12" Foreground="#FFFFFF55"/>
-                            <TextBox x:Name="DlgLibDirs" FontFamily="Consolas" FontSize="12"
-                                     Background="#FF000055" Foreground="#FFFFFFFF"
-                                     BorderBrush="#FF00AAAA" BorderThickness="1" CornerRadius="0"/>
+                            <TextBlock
+                                FontFamily="Consolas"
+                                FontSize="12"
+                                Foreground="#FFFFFF55"
+                                Text="Library dirs (;-separated):" />
+                            <TextBox
+                                x:Name="DlgLibDirs"
+                                Background="#FF000055"
+                                BorderBrush="#FF00AAAA"
+                                BorderThickness="1"
+                                CornerRadius="0"
+                                FontFamily="Consolas"
+                                FontSize="12"
+                                Foreground="#FFFFFFFF" />
                         </StackPanel>
                         <StackPanel Spacing="3">
-                            <TextBlock Text="Output directory:" FontFamily="Consolas" FontSize="12" Foreground="#FFFFFF55"/>
-                            <TextBox x:Name="DlgOutputDir" FontFamily="Consolas" FontSize="12"
-                                     Background="#FF000055" Foreground="#FFFFFFFF"
-                                     BorderBrush="#FF00AAAA" BorderThickness="1" CornerRadius="0"
-                                     PlaceholderText="same as source"/>
+                            <TextBlock
+                                FontFamily="Consolas"
+                                FontSize="12"
+                                Foreground="#FFFFFF55"
+                                Text="Output directory:" />
+                            <TextBox
+                                x:Name="DlgOutputDir"
+                                Background="#FF000055"
+                                BorderBrush="#FF00AAAA"
+                                BorderThickness="1"
+                                CornerRadius="0"
+                                FontFamily="Consolas"
+                                FontSize="12"
+                                Foreground="#FFFFFFFF"
+                                PlaceholderText="same as source" />
                         </StackPanel>
                         <StackPanel Spacing="3">
-                            <TextBlock Text="Additional flags:" FontFamily="Consolas" FontSize="12" Foreground="#FFFFFF55"/>
-                            <TextBox x:Name="DlgFlags" FontFamily="Consolas" FontSize="12"
-                                     Background="#FF000055" Foreground="#FFFFFFFF"
-                                     BorderBrush="#FF00AAAA" BorderThickness="1" CornerRadius="0"
-                                     PlaceholderText="-Wall -O2"/>
+                            <TextBlock
+                                FontFamily="Consolas"
+                                FontSize="12"
+                                Foreground="#FFFFFF55"
+                                Text="Additional flags:" />
+                            <TextBox
+                                x:Name="DlgFlags"
+                                Background="#FF000055"
+                                BorderBrush="#FF00AAAA"
+                                BorderThickness="1"
+                                CornerRadius="0"
+                                FontFamily="Consolas"
+                                FontSize="12"
+                                Foreground="#FFFFFFFF"
+                                PlaceholderText="-Wall -O2" />
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" Margin="0,4,0,0">
-                            <Button Content="  OK  " Style="{StaticResource DosDialogButtonStyle}" Click="DlgCompiler_OK"/>
-                            <Button Content="Cancel" Style="{StaticResource DosDialogButtonStyle}" Click="DlgCompiler_Cancel"/>
+                        <StackPanel
+                            Margin="0,4,0,0"
+                            HorizontalAlignment="Center"
+                            Orientation="Horizontal"
+                            Spacing="8">
+                            <Button
+                                Click="DlgCompiler_OK"
+                                Content="  OK  "
+                                Style="{StaticResource DosDialogButtonStyle}" />
+                            <Button
+                                Click="DlgCompiler_Cancel"
+                                Content="Cancel"
+                                Style="{StaticResource DosDialogButtonStyle}" />
                         </StackPanel>
                     </StackPanel>
                 </Border>
             </Grid>
         </Grid>
 
-        <!-- ABOUT DIALOG -->
-        <Grid x:Name="AboutDialogOverlay" Grid.RowSpan="5" Visibility="Collapsed" Background="Transparent">
+        <!--  ABOUT DIALOG  -->
+        <Grid
+            x:Name="AboutDialogOverlay"
+            Grid.RowSpan="3"
+            Background="Transparent"
+            Visibility="Collapsed">
             <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
-                <Border Margin="4,4,0,0" Background="#FF000055" CornerRadius="0"/>
-                <Border Background="#FF0000AA" BorderBrush="#FF00AAAA" BorderThickness="2"
-                        Margin="0,0,4,4" CornerRadius="0" Padding="16,12">
-                    <StackPanel Spacing="2" HorizontalAlignment="Center">
-                        <TextBlock Text="╔══════════════════════════════════════╗"
-                                   FontFamily="Consolas" FontSize="14" Foreground="#FF00AAAA" HorizontalAlignment="Center"/>
-                        <TextBlock Text="║                                      ║"
-                                   FontFamily="Consolas" FontSize="14" Foreground="#FF00AAAA" HorizontalAlignment="Center"/>
-                        <TextBlock Text="║        Turbo C  Version 3.0          ║"
-                                   FontFamily="Consolas" FontSize="14" Foreground="#FFFFFF55" FontWeight="Bold" HorizontalAlignment="Center"/>
-                        <TextBlock Text="║                                      ║"
-                                   FontFamily="Consolas" FontSize="14" Foreground="#FF00AAAA" HorizontalAlignment="Center"/>
-                        <TextBlock Text="║   Copyright (c) 1992                 ║"
-                                   FontFamily="Consolas" FontSize="14" Foreground="#FFFFFFFF" HorizontalAlignment="Center"/>
-                        <TextBlock Text="║   Borland International              ║"
-                                   FontFamily="Consolas" FontSize="14" Foreground="#FFFFFFFF" HorizontalAlignment="Center"/>
-                        <TextBlock Text="║                                      ║"
-                                   FontFamily="Consolas" FontSize="14" Foreground="#FF00AAAA" HorizontalAlignment="Center"/>
-                        <TextBlock Text="║   Recreated in WinUI 3 / .NET 8      ║"
-                                   FontFamily="Consolas" FontSize="14" Foreground="#FF55FFFF" HorizontalAlignment="Center"/>
-                        <TextBlock Text="║                                      ║"
-                                   FontFamily="Consolas" FontSize="14" Foreground="#FF00AAAA" HorizontalAlignment="Center"/>
-                        <TextBlock Text="╚══════════════════════════════════════╝"
-                                   FontFamily="Consolas" FontSize="14" Foreground="#FF00AAAA" HorizontalAlignment="Center"/>
-                        <Button Content="  OK  " Style="{StaticResource DosDialogButtonStyle}"
-                                Click="DlgAbout_OK" HorizontalAlignment="Center" Margin="0,8,0,0"/>
+                <Border
+                    Margin="4,4,0,0"
+                    Background="#FF000000"
+                    CornerRadius="0" />
+                <Border
+                    Margin="0,0,4,4"
+                    Padding="16,12"
+                    Background="#FF0000AA"
+                    BorderBrush="#FF00AAAA"
+                    BorderThickness="2"
+                    CornerRadius="0">
+                    <StackPanel HorizontalAlignment="Center" Spacing="2">
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            FontFamily="Consolas"
+                            FontSize="14"
+                            Foreground="#FF00AAAA"
+                            Text="╔══════════════════════════════════════╗" />
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            FontFamily="Consolas"
+                            FontSize="14"
+                            Foreground="#FF00AAAA"
+                            Text="║                                      ║" />
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            FontFamily="Consolas"
+                            FontSize="14"
+                            FontWeight="Bold"
+                            Foreground="#FFFFFF55"
+                            Text="║        Turbo C  Version 3.0          ║" />
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            FontFamily="Consolas"
+                            FontSize="14"
+                            Foreground="#FF00AAAA"
+                            Text="║                                      ║" />
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            FontFamily="Consolas"
+                            FontSize="14"
+                            Foreground="#FFFFFFFF"
+                            Text="║   Copyright (c) 1992                 ║" />
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            FontFamily="Consolas"
+                            FontSize="14"
+                            Foreground="#FFFFFFFF"
+                            Text="║   Borland International              ║" />
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            FontFamily="Consolas"
+                            FontSize="14"
+                            Foreground="#FF00AAAA"
+                            Text="║                                      ║" />
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            FontFamily="Consolas"
+                            FontSize="14"
+                            Foreground="#FF55FFFF"
+                            Text="║   Recreated in WinUI 3 / .NET 8      ║" />
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            FontFamily="Consolas"
+                            FontSize="14"
+                            Foreground="#FF00AAAA"
+                            Text="║                                      ║" />
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            FontFamily="Consolas"
+                            FontSize="14"
+                            Foreground="#FF00AAAA"
+                            Text="╚══════════════════════════════════════╝" />
+                        <Button
+                            Margin="0,8,0,0"
+                            HorizontalAlignment="Center"
+                            Click="DlgAbout_OK"
+                            Content="  OK  "
+                            Style="{StaticResource DosDialogButtonStyle}" />
                     </StackPanel>
                 </Border>
             </Grid>
         </Grid>
 
-        <!-- ═══════════════════════════════════════════════ -->
-        <!-- KEYBOARD ACCELERATORS (window-level)            -->
-        <!-- ═══════════════════════════════════════════════ -->
+        <!--  PROGRAM ARGUMENTS DIALOG  -->
+        <Grid
+            x:Name="ArgumentsDialogOverlay"
+            Grid.RowSpan="3"
+            Background="Transparent"
+            Visibility="Collapsed">
+            <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Border
+                    Margin="4,4,0,0"
+                    Background="#FF000000"
+                    CornerRadius="0" />
+                <Border
+                    Margin="0,0,4,4"
+                    Padding="12"
+                    Background="#FF0000AA"
+                    BorderBrush="#FF00AAAA"
+                    BorderThickness="2"
+                    CornerRadius="0">
+                    <StackPanel MinWidth="380" Spacing="10">
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            FontFamily="Consolas"
+                            FontSize="14"
+                            FontWeight="Bold"
+                            Foreground="#FF00AAAA"
+                            Text="Program Arguments" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock
+                                Width="85"
+                                VerticalAlignment="Center"
+                                FontFamily="Consolas"
+                                FontSize="13"
+                                Foreground="#FFFFFF55"
+                                Text="Arguments:" />
+                            <TextBox
+                                x:Name="DlgArgumentsBox"
+                                Width="250"
+                                Padding="4,2"
+                                Background="#FF000055"
+                                BorderBrush="#FF00AAAA"
+                                BorderThickness="1"
+                                CornerRadius="0"
+                                FontFamily="Consolas"
+                                FontSize="13"
+                                Foreground="#FFFFFFFF"
+                                PlaceholderText="e.g. input.txt 42" />
+                        </StackPanel>
+                        <StackPanel
+                            HorizontalAlignment="Center"
+                            Orientation="Horizontal"
+                            Spacing="8">
+                            <Button
+                                Click="DlgArguments_OK"
+                                Content="  OK  "
+                                Style="{StaticResource DosDialogButtonStyle}" />
+                            <Button
+                                Click="DlgArguments_Cancel"
+                                Content="Cancel"
+                                Style="{StaticResource DosDialogButtonStyle}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!--  DIRECTORIES DIALOG  -->
+        <Grid
+            x:Name="DirectoriesDialogOverlay"
+            Grid.RowSpan="3"
+            Background="Transparent"
+            Visibility="Collapsed">
+            <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Border
+                    Margin="4,4,0,0"
+                    Background="#FF000000"
+                    CornerRadius="0" />
+                <Border
+                    Margin="0,0,4,4"
+                    Padding="12"
+                    Background="#FF0000AA"
+                    BorderBrush="#FF00AAAA"
+                    BorderThickness="2"
+                    CornerRadius="0">
+                    <StackPanel MinWidth="420" Spacing="8">
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            FontFamily="Consolas"
+                            FontSize="14"
+                            FontWeight="Bold"
+                            Foreground="#FF00AAAA"
+                            Text="Directories" />
+                        <StackPanel Spacing="3">
+                            <TextBlock
+                                FontFamily="Consolas"
+                                FontSize="12"
+                                Foreground="#FFFFFF55"
+                                Text="Include directories (;-separated):" />
+                            <TextBox
+                                x:Name="DlgDirInclude"
+                                Background="#FF000055"
+                                BorderBrush="#FF00AAAA"
+                                BorderThickness="1"
+                                CornerRadius="0"
+                                FontFamily="Consolas"
+                                FontSize="12"
+                                Foreground="#FFFFFFFF" />
+                        </StackPanel>
+                        <StackPanel Spacing="3">
+                            <TextBlock
+                                FontFamily="Consolas"
+                                FontSize="12"
+                                Foreground="#FFFFFF55"
+                                Text="Library directories (;-separated):" />
+                            <TextBox
+                                x:Name="DlgDirLib"
+                                Background="#FF000055"
+                                BorderBrush="#FF00AAAA"
+                                BorderThickness="1"
+                                CornerRadius="0"
+                                FontFamily="Consolas"
+                                FontSize="12"
+                                Foreground="#FFFFFFFF" />
+                        </StackPanel>
+                        <StackPanel Spacing="3">
+                            <TextBlock
+                                FontFamily="Consolas"
+                                FontSize="12"
+                                Foreground="#FFFFFF55"
+                                Text="Output directory:" />
+                            <TextBox
+                                x:Name="DlgDirOutput"
+                                Background="#FF000055"
+                                BorderBrush="#FF00AAAA"
+                                BorderThickness="1"
+                                CornerRadius="0"
+                                FontFamily="Consolas"
+                                FontSize="12"
+                                Foreground="#FFFFFFFF"
+                                PlaceholderText="same as source" />
+                        </StackPanel>
+                        <StackPanel
+                            Margin="0,4,0,0"
+                            HorizontalAlignment="Center"
+                            Orientation="Horizontal"
+                            Spacing="8">
+                            <Button
+                                Click="DlgDirectories_OK"
+                                Content="  OK  "
+                                Style="{StaticResource DosDialogButtonStyle}" />
+                            <Button
+                                Click="DlgDirectories_Cancel"
+                                Content="Cancel"
+                                Style="{StaticResource DosDialogButtonStyle}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!--  ═══════════════════════════════════════════════  -->
+        <!--  KEYBOARD ACCELERATORS (window-level)  -->
+        <!--  ═══════════════════════════════════════════════  -->
         <Grid.KeyboardAccelerators>
-            <KeyboardAccelerator Key="F2"  Modifiers="None"    Invoked="Accel_Save"/>
-            <KeyboardAccelerator Key="F3"  Modifiers="None"    Invoked="Accel_Open"/>
-            <KeyboardAccelerator Key="F9"  Modifiers="None"    Invoked="Accel_Make"/>
-            <KeyboardAccelerator Key="F9"  Modifiers="Menu"    Invoked="Accel_Compile"/>
-            <KeyboardAccelerator Key="F9"  Modifiers="Control" Invoked="Accel_Run"/>
-            <KeyboardAccelerator Key="X"   Modifiers="Menu"    Invoked="Accel_Quit"/>
-            <KeyboardAccelerator Key="F5"  Modifiers="Menu"    Invoked="Accel_UserScreen"/>
-            <KeyboardAccelerator Key="F"   Modifiers="Control" Invoked="Accel_Find"/>
-            <KeyboardAccelerator Key="H"   Modifiers="Control" Invoked="Accel_Replace"/>
-            <KeyboardAccelerator Key="G"   Modifiers="Control" Invoked="Accel_GoToLine"/>
-            <KeyboardAccelerator Key="Escape" Modifiers="None" Invoked="Accel_Escape"/>
+            <KeyboardAccelerator
+                Key="F2"
+                Invoked="Accel_Save"
+                Modifiers="None" />
+            <KeyboardAccelerator
+                Key="F3"
+                Invoked="Accel_Open"
+                Modifiers="None" />
+            <KeyboardAccelerator
+                Key="F9"
+                Invoked="Accel_Make"
+                Modifiers="None" />
+            <KeyboardAccelerator
+                Key="F9"
+                Invoked="Accel_Compile"
+                Modifiers="Menu" />
+            <KeyboardAccelerator
+                Key="F9"
+                Invoked="Accel_Run"
+                Modifiers="Control" />
+            <KeyboardAccelerator
+                Key="X"
+                Invoked="Accel_Quit"
+                Modifiers="Menu" />
+            <KeyboardAccelerator
+                Key="F5"
+                Invoked="Accel_UserScreen"
+                Modifiers="Menu" />
+            <KeyboardAccelerator
+                Key="F"
+                Invoked="Accel_Find"
+                Modifiers="Control" />
+            <KeyboardAccelerator
+                Key="H"
+                Invoked="Accel_Replace"
+                Modifiers="Control" />
+            <KeyboardAccelerator
+                Key="G"
+                Invoked="Accel_GoToLine"
+                Modifiers="Control" />
+            <KeyboardAccelerator
+                Key="Escape"
+                Invoked="Accel_Escape"
+                Modifiers="None" />
+            <KeyboardAccelerator
+                Key="F7"
+                Invoked="Accel_PrevError"
+                Modifiers="Menu" />
+            <KeyboardAccelerator
+                Key="F8"
+                Invoked="Accel_NextError"
+                Modifiers="Menu" />
+            <KeyboardAccelerator
+                Key="F1"
+                Invoked="Accel_Help"
+                Modifiers="None" />
+            <KeyboardAccelerator
+                Key="F6"
+                Invoked="Accel_NextWindow"
+                Modifiers="None" />
+            <KeyboardAccelerator
+                Key="Number1"
+                Invoked="Accel_SwitchWindow"
+                Modifiers="Menu" />
+            <KeyboardAccelerator
+                Key="Number2"
+                Invoked="Accel_SwitchWindow"
+                Modifiers="Menu" />
+            <KeyboardAccelerator
+                Key="Number3"
+                Invoked="Accel_SwitchWindow"
+                Modifiers="Menu" />
+            <KeyboardAccelerator
+                Key="Number4"
+                Invoked="Accel_SwitchWindow"
+                Modifiers="Menu" />
+            <KeyboardAccelerator
+                Key="Number5"
+                Invoked="Accel_SwitchWindow"
+                Modifiers="Menu" />
+            <KeyboardAccelerator
+                Key="Number6"
+                Invoked="Accel_SwitchWindow"
+                Modifiers="Menu" />
+            <KeyboardAccelerator
+                Key="Number7"
+                Invoked="Accel_SwitchWindow"
+                Modifiers="Menu" />
+            <KeyboardAccelerator
+                Key="Number8"
+                Invoked="Accel_SwitchWindow"
+                Modifiers="Menu" />
+            <KeyboardAccelerator
+                Key="Number9"
+                Invoked="Accel_SwitchWindow"
+                Modifiers="Menu" />
         </Grid.KeyboardAccelerators>
 
     </Grid>

@@ -1,107 +1,130 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
 <UserControl
     x:Class="C.Compiler.Controls.EditorControl"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    HorizontalAlignment="Stretch"
+    VerticalAlignment="Stretch"
     mc:Ignorable="d">
 
-    <Grid>
-        <!-- Outer DOS-style double border -->
-        <Border BorderBrush="#FF00AAAA" BorderThickness="2" Background="#FF0000AA" CornerRadius="0">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
+    <!--
+        TC3 Editor Window — box-drawing border, no line numbers gutter,
+        title centered in top border, line:col in bottom-left border,
+        scroll arrows on right side and bottom
+    -->
+    <Grid Background="#FF0000AA">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
 
-                <!-- Title bar row (like TC window title bar) -->
-                <Grid Grid.Row="0" Background="#FF00AAAA" Height="24">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
+        <!--  ═══ TOP BORDER ═══  -->
+        <Grid Grid.Row="0">
+            <TextBlock
+                x:Name="TopBorderText"
+                VerticalAlignment="Center"
+                FontFamily="Consolas"
+                FontSize="13"
+                Foreground="#FF00AAAA"
+                IsTextSelectionEnabled="False">
+                <Run Text="[" /><Run Foreground="#FF00AA00" Text=" ■ " /><Run Text="]═══════════════════ " />
+                <Run
+                    x:Name="TitleRun"
+                    FontWeight="Bold"
+                    Foreground="#FFFFFFFF"
+                    Text="NONAME00.C" />
+                <Run Text=" ══════════════════════════════════════════════════════════════" />
 
-                    <!-- Close button [■] -->
-                    <Button Grid.Column="0" Content="[■]"
-                            FontFamily="Consolas" FontSize="12"
-                            Foreground="#FF000000" Background="Transparent"
-                            BorderThickness="0" Padding="4,0"
-                            VerticalAlignment="Center"
-                            CornerRadius="0"
-                            Click="CloseButton_Click"/>
+            </TextBlock>
+            <!--  Close button overlay (invisible, sits on top of [■])  -->
+            <Button
+                x:Name="CloseBtn"
+                Width="38"
+                Height="18"
+                MinWidth="0"
+                MinHeight="0"
+                Padding="0"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                Background="Transparent"
+                BorderThickness="0"
+                Click="CloseButton_Click"
+                Content="     "
+                CornerRadius="0"
+                Opacity="0" />
+        </Grid>
 
-                    <!-- Centered filename -->
-                    <TextBlock Grid.Column="1" x:Name="TitleText"
-                               Text="NONAME.C"
-                               FontFamily="Consolas" FontSize="13"
-                               Foreground="#FF000000" FontWeight="Bold"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center"/>
+        <!--  ═══ CODE EDITOR ═══  -->
+        <Grid
+            Grid.Row="1"
+            Grid.Column="0"
+            VerticalAlignment="Stretch">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <!--  Left gutter — thin cyan line like TC3  -->
+            <Border
+                Grid.Column="0"
+                Width="2"
+                Background="#FF005588" />
+            <RichEditBox
+                x:Name="CodeEditor"
+                Grid.Column="1"
+                Padding="6,2"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                AcceptsReturn="True"
+                Background="#FF000088"
+                BorderThickness="0"
+                CornerRadius="0"
+                FontFamily="Consolas"
+                FontSize="14"
+                Foreground="#FFFFFF00"
+                IsReadOnly="False"
+                IsSpellCheckEnabled="False"
+                IsTextPredictionEnabled="False"
+                SelectionChanged="CodeEditor_SelectionChanged"
+                SelectionFlyout="{x:Null}"
+                SelectionHighlightColor="#FF005555"
+                TextChanged="CodeEditor_TextChanged"
+                TextWrapping="NoWrap" />
+            <!--  Block cursor overlay (TC3 style)  -->
+            <Border
+                x:Name="BlockCursor"
+                Grid.Column="1"
+                Width="9"
+                Height="24"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                Background="#FFFFFF55"
+                IsHitTestVisible="False"
+                Opacity="1" />
+        </Grid>
 
-                    <!-- Zoom button [↕] and window number -->
-                    <StackPanel Grid.Column="2" Orientation="Horizontal">
-                        <TextBlock x:Name="WindowNumberText" Text="1"
-                                   FontFamily="Consolas" FontSize="12"
-                                   Foreground="#FF000000"
-                                   VerticalAlignment="Center" Margin="4,0"/>
-                        <Button Content="[↕]"
-                                FontFamily="Consolas" FontSize="12"
-                                Foreground="#FF000000" Background="Transparent"
-                                BorderThickness="0" Padding="4,0"
-                                VerticalAlignment="Center"
-                                CornerRadius="0"
-                                Click="ZoomButton_Click"/>
-                    </StackPanel>
-                </Grid>
 
-                <!-- Editor area with line numbers -->
-                <Grid Grid.Row="1">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
 
-                    <!-- Line numbers gutter -->
-                    <ScrollViewer x:Name="LineNumberScroller"
-                                  Grid.Column="0"
-                                  VerticalScrollMode="Disabled"
-                                  HorizontalScrollMode="Disabled"
-                                  VerticalScrollBarVisibility="Hidden"
-                                  HorizontalScrollBarVisibility="Hidden"
-                                  Background="#FF000088" MinWidth="44">
-                        <TextBlock x:Name="LineNumbers"
-                                   FontFamily="Consolas" FontSize="14"
-                                   Foreground="#FF00AAAA"
-                                   Padding="4,4,8,4"
-                                   TextAlignment="Right"/>
-                    </ScrollViewer>
-
-                    <!-- Separator line -->
-                    <Border Grid.Column="0" HorizontalAlignment="Right"
-                            Width="1" Background="#FF00AAAA"/>
-
-                    <!-- Code editor -->
-                    <RichEditBox x:Name="CodeEditor"
-                                 Grid.Column="1"
-                                 FontFamily="Consolas" FontSize="14"
-                                 Background="#FF0000AA"
-                                 Foreground="#FFFFFF00"
-                                 BorderThickness="0"
-                                 CornerRadius="0"
-                                 Padding="4"
-                                 AcceptsReturn="True"
-                                 IsSpellCheckEnabled="False"
-                                 SelectionHighlightColor="#FF005555"
-                                 TextWrapping="NoWrap"
-                                 VerticalAlignment="Stretch"
-                                 HorizontalAlignment="Stretch"
-                                 TextChanged="CodeEditor_TextChanged"
-                                 SelectionChanged="CodeEditor_SelectionChanged"/>
-                </Grid>
-            </Grid>
-        </Border>
+        <!--  ═══ BOTTOM BORDER ═══  -->
+        <Grid Grid.Row="2">
+            <TextBlock
+                VerticalAlignment="Center"
+                FontFamily="Consolas"
+                FontSize="13"
+                Foreground="#FF00AAAA"
+                IsTextSelectionEnabled="False">
+                <Run Text="─*─" /><Run Text="  " />
+                <Run
+                    x:Name="BottomLineColRun"
+                    Foreground="#FFFFFF55"
+                    Text="1:1" />
+                <Run Text=" ══════════════════════════════════════════════════════════════════════════════════════" />
+            </TextBlock>
+        </Grid>
     </Grid>
 </UserControl>
