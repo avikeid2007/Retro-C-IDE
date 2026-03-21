@@ -57,6 +57,15 @@ namespace C.Compiler.Controls
             StartCursorBlink();
 
             Loaded += (_, _) => { CodeEditor.Focus(FocusState.Programmatic); UpdateBlockCursorPosition(); };
+            Unloaded += (_, _) => Cleanup();
+        }
+
+        public void Cleanup()
+        {
+            _highlightTimer?.Stop();
+            _highlightTimer = null;
+            _cursorBlinkTimer?.Stop();
+            _cursorBlinkTimer = null;
         }
 
         private void SetEditorDefaults()
@@ -312,12 +321,14 @@ namespace C.Compiler.Controls
         private void StartCursorBlink()
         {
             _cursorBlinkTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(530) };
-            _cursorBlinkTimer.Tick += (_, _) =>
-            {
-                _cursorVisible = !_cursorVisible;
-                BlockCursor.Opacity = _cursorVisible ? 1 : 0;
-            };
+            _cursorBlinkTimer.Tick += CursorBlink_Tick;
             _cursorBlinkTimer.Start();
+        }
+
+        private void CursorBlink_Tick(object? sender, object e)
+        {
+            _cursorVisible = !_cursorVisible;
+            BlockCursor.Opacity = _cursorVisible ? 1 : 0;
         }
 
         private void UpdateBlockCursorPosition()
@@ -334,6 +345,13 @@ namespace C.Compiler.Controls
 
                 var range = CodeEditor.Document.GetRange(sel.StartPosition, sel.StartPosition);
                 range.GetRect(PointOptions.ClientCoordinates, out Rect rect, out _);
+
+                // Dynamic cursor sizing from font metrics
+                double fontSize = 14;
+                var fmt = CodeEditor.Document.GetDefaultCharacterFormat();
+                if (fmt.Size > 0) fontSize = fmt.Size;
+                BlockCursor.Height = fontSize * 1.35;  // line height
+                BlockCursor.Width = fontSize * 0.62;   // monospace char width
 
                 // Transform from RichEditBox coordinates to the parent Grid
                 var transform = CodeEditor.TransformToVisual(BlockCursor.Parent as UIElement);

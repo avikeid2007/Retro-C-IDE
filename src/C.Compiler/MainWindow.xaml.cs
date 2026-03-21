@@ -46,9 +46,20 @@ namespace C.Compiler
         private int _activeMenuIndex = -1;
         private bool _menuBarActive;
 
-        private EditorControl ActiveEditor => _editors.Count > 0 && EditorTabs.SelectedIndex >= 0 && EditorTabs.SelectedIndex < _editors.Count
-            ? _editors[EditorTabs.SelectedIndex]
-            : _editors[0];
+        private EditorControl ActiveEditor
+        {
+            get
+            {
+                if (_editors.Count == 0)
+                {
+                    // Safety: should never happen since last tab resets instead of closing
+                    AddEditorTab(_fileService.CreateNew());
+                }
+                int idx = EditorTabs.SelectedIndex;
+                if (idx >= 0 && idx < _editors.Count) return _editors[idx];
+                return _editors[0];
+            }
+        }
 
         public MainWindow()
         {
@@ -196,9 +207,11 @@ namespace C.Compiler
                 return;
             }
 
-            _editors[index].CursorMoved -= OnCursorMoved;
-            _editors[index].ContentChanged -= OnContentChanged;
-            _editors[index].CloseRequested -= OnEditorCloseRequested;
+            var editor = _editors[index];
+            editor.CursorMoved -= OnCursorMoved;
+            editor.ContentChanged -= OnContentChanged;
+            editor.CloseRequested -= OnEditorCloseRequested;
+            editor.Cleanup();
             _editors.RemoveAt(index);
             EditorTabs.TabItems.RemoveAt(index);
             UpdateTabHeaders();

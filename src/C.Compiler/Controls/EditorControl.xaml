@@ -25,26 +25,54 @@
         </Grid.ColumnDefinitions>
 
         <!--  ═══ TOP BORDER ═══  -->
-        <Grid Grid.Row="0">
+        <Grid Grid.Row="0" Height="18">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <!--  [■] close icon  -->
             <TextBlock
-                x:Name="TopBorderText"
+                Grid.Column="0"
                 VerticalAlignment="Center"
                 FontFamily="Consolas"
                 FontSize="13"
                 Foreground="#FF00AAAA"
                 IsTextSelectionEnabled="False">
-                <Run Text="[" /><Run Foreground="#FF00AA00" Text=" ■ " /><Run Text="]═══════════════════ " />
+                <Run Text="[" /><Run Foreground="#FF00AA00" Text=" ■ " /><Run Text="]" />
+            </TextBlock>
+            <!--  Left line (stretches)  -->
+            <Border
+                Grid.Column="1"
+                Height="2"
+                VerticalAlignment="Center"
+                Background="#FF00AAAA" />
+            <!--  Title  -->
+            <TextBlock
+                x:Name="TopBorderText"
+                Grid.Column="2"
+                Margin="6,0"
+                VerticalAlignment="Center"
+                FontFamily="Consolas"
+                FontSize="13"
+                IsTextSelectionEnabled="False">
                 <Run
                     x:Name="TitleRun"
                     FontWeight="Bold"
                     Foreground="#FFFFFFFF"
                     Text="NONAME00.C" />
-                <Run Text=" ══════════════════════════════════════════════════════════════" />
-
             </TextBlock>
+            <!--  Right line (stretches)  -->
+            <Border
+                Grid.Column="3"
+                Height="2"
+                VerticalAlignment="Center"
+                Background="#FF00AAAA" />
             <!--  Close button overlay (invisible, sits on top of [■])  -->
             <Button
                 x:Name="CloseBtn"
+                Grid.Column="0"
                 Width="38"
                 Height="18"
                 MinWidth="0"
@@ -111,20 +139,29 @@
 
 
         <!--  ═══ BOTTOM BORDER ═══  -->
-        <Grid Grid.Row="2">
+        <Grid Grid.Row="2" Height="18">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
             <TextBlock
+                Grid.Column="0"
                 VerticalAlignment="Center"
                 FontFamily="Consolas"
                 FontSize="13"
-                Foreground="#FF00AAAA"
                 IsTextSelectionEnabled="False">
-                <Run Text="─*─" /><Run Text="  " />
+                <Run Foreground="#FF00AAAA" Text="─*─  " />
                 <Run
                     x:Name="BottomLineColRun"
                     Foreground="#FFFFFF55"
                     Text="1:1" />
-                <Run Text=" ══════════════════════════════════════════════════════════════════════════════════════" />
             </TextBlock>
+            <!--  Right line (stretches)  -->
+            <Border
+                Grid.Column="1"
+                Height="2"
+                VerticalAlignment="Center"
+                Background="#FF00AAAA" />
         </Grid>
     </Grid>
 </UserControl>
