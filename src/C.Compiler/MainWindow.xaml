@@ -484,6 +484,9 @@
                         <Button Click="SearchAgain_Click" Style="{StaticResource DosMenuItemStyle}">
                             <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="S" /><Run Text="earch again               " /></TextBlock>
                         </Button>
+                        <Button Click="SearchPrevious_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" Search " /><Run Foreground="#FFFF0000" Text="p" /><Run Text="revious         " /></TextBlock>
+                        </Button>
                         <Border
                             Height="1"
                             Margin="1,0"
@@ -1154,6 +1157,24 @@
                                 FontSize="12"
                                 Foreground="#FFFFFFFF"
                                 PlaceholderText="-Wall -O2" />
+                        </StackPanel>
+                        <StackPanel Spacing="3">
+                            <TextBlock
+                                FontFamily="Consolas"
+                                FontSize="12"
+                                Foreground="#FFFFFF55"
+                                Text="Timeout (seconds):" />
+                            <TextBox
+                                x:Name="DlgCompilerTimeout"
+                                Background="#FF000055"
+                                BorderBrush="#FF00AAAA"
+                                BorderThickness="1"
+                                CornerRadius="0"
+                                FontFamily="Consolas"
+                                FontSize="12"
+                                Foreground="#FFFFFFFF"
+                                InputScope="Number"
+                                PlaceholderText="30" />
                         </StackPanel>
                         <StackPanel
                             Margin="0,4,0,0"

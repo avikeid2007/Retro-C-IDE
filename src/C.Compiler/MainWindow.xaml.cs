@@ -502,6 +502,47 @@ namespace C.Compiler
             }
         }
 
+        private void SearchPrevious_Click(object sender, RoutedEventArgs e)
+        {
+            CloseAllMenus();
+            if (string.IsNullOrEmpty(_lastSearchText))
+            {
+                AddMessage("No search text. Use Find first.");
+                return;
+            }
+
+            var text = ActiveEditor.GetText();
+            var comparison = _lastSearchCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+            int currentPos = ActiveEditor.Document.Selection.StartPosition;
+            if (currentPos > 0) currentPos--;
+
+            // Search backward from current position
+            int index = text.LastIndexOf(_lastSearchText, currentPos, comparison);
+            if (index < 0)
+            {
+                // Wrap to end and search again
+                index = text.LastIndexOf(_lastSearchText, comparison);
+            }
+
+            if (index >= 0)
+            {
+                ActiveEditor.Document.Selection.SetRange(index, index + _lastSearchText.Length);
+                AddMessage($"Found at line {GetLineNumber(text, index)}.");
+            }
+            else
+            {
+                AddMessage($"No previous match: {_lastSearchText}");
+            }
+        }
+
+        private int GetLineNumber(string text, int position)
+        {
+            int line = 1;
+            for (int i = 0; i < position && i < text.Length; i++)
+                if (text[i] == '\r') line++;
+            return line;
+        }
+
         private void GoToLine_Click(object sender, RoutedEventArgs e)
         {
             CloseAllMenus();
@@ -656,12 +697,16 @@ namespace C.Compiler
             DlgLibDirs.Text = s.LibraryDirectories;
             DlgOutputDir.Text = s.OutputDirectory;
             DlgFlags.Text = s.AdditionalFlags;
+            DlgCompilerTimeout.Text = s.TimeoutSeconds.ToString();
             CompilerDialogOverlay.Visibility = Visibility.Visible;
         }
 
         private async void DlgCompiler_OK(object sender, RoutedEventArgs e)
         {
             CompilerDialogOverlay.Visibility = Visibility.Collapsed;
+            if (!int.TryParse(DlgCompilerTimeout.Text, out int timeout) || timeout <= 0)
+                timeout = 30;
+
             _compilerService.Settings = new CompilerSettings
             {
                 CompilerPath = DlgCompilerPath.Text.Trim(),
@@ -669,7 +714,8 @@ namespace C.Compiler
                 IncludeDirectories = DlgIncludeDirs.Text.Trim(),
                 LibraryDirectories = DlgLibDirs.Text.Trim(),
                 OutputDirectory = DlgOutputDir.Text.Trim(),
-                AdditionalFlags = DlgFlags.Text.Trim()
+                AdditionalFlags = DlgFlags.Text.Trim(),
+                TimeoutSeconds = timeout
             };
             _settingsService.Settings.Compiler = _compilerService.Settings;
             await _settingsService.SaveAsync();

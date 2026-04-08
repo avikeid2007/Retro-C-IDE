@@ -22,13 +22,39 @@ namespace C.Compiler.Services
 
         private static readonly HashSet<string> CKeywords = new(StringComparer.Ordinal)
         {
+            // C Language Keywords (32)
             "auto", "break", "case", "char", "const", "continue", "default", "do",
             "double", "else", "enum", "extern", "float", "for", "goto", "if",
             "int", "long", "register", "return", "short", "signed", "sizeof", "static",
             "struct", "switch", "typedef", "union", "unsigned", "void", "volatile", "while",
-            "printf", "scanf", "main", "NULL", "stdin", "stdout", "stderr",
-            "malloc", "free", "calloc", "realloc", "sizeof",
-            "FILE", "EOF", "true", "false"
+            
+            // Standard I/O Functions (stdio.h)
+            "printf", "scanf", "fprintf", "fscanf", "fopen", "fclose", "fgets", "fputs",
+            "FILE", "EOF", "stdin", "stdout", "stderr", "getchar", "putchar",
+            
+            // Standard Library Functions (stdlib.h)
+            "malloc", "free", "calloc", "realloc", "atoi", "atof", "exit", "abs",
+            
+            // String Functions (string.h)
+            "strlen", "strcmp", "strcpy", "strcat", "strchr", "strstr", "memcpy", "memset",
+            "strcpyn", "strncat", "strncpy",
+            
+            // Math Functions (math.h)
+            "sin", "cos", "tan", "sqrt", "pow", "abs", "ceil", "floor",
+            "log", "exp", "atan2", "asin", "acos",
+            
+            // Character Functions (ctype.h)
+            "isalpha", "isdigit", "isspace", "toupper", "tolower", "isalnum",
+            "isgraph", "ispunct", "iscntrl", "isxdigit", "isupper", "islower",
+            
+            // Time Functions (time.h)
+            "time", "clock", "localtime", "strftime", "mktime",
+            
+            // Constants & Special
+            "NULL", "true", "false",
+            
+            // Main entry point
+            "main"
         };
 
         public struct HighlightToken

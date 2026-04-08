@@ -120,7 +120,7 @@ namespace C.Compiler.Services
                 _ => BuildGccCompileArgs(sourceFilePath, objPath)
             };
 
-            var result = await _processRunner.RunAsync(compiler, args, Path.GetDirectoryName(sourceFilePath));
+            var result = await _processRunner.RunAsync(compiler, args, Path.GetDirectoryName(sourceFilePath), _settings.TimeoutSeconds * 1000);
 
             return new CompileResult
             {
@@ -159,7 +159,7 @@ namespace C.Compiler.Services
                 _ => BuildGccMakeArgs(sourceFilePath, exePath)
             };
 
-            var result = await _processRunner.RunAsync(compiler, args, Path.GetDirectoryName(sourceFilePath));
+            var result = await _processRunner.RunAsync(compiler, args, Path.GetDirectoryName(sourceFilePath), _settings.TimeoutSeconds * 1000);
 
             return new CompileResult
             {

@@ -12,5 +12,25 @@ namespace C.Compiler.Models
         public string DisplayTitle => IsDirty ? $"*{FileName}" : FileName;
 
         public bool IsNewFile => FilePath == null;
+
+        public SelectionInfo Selection { get; } = new();
+
+        public class SelectionInfo
+        {
+            public int StartPosition { get; set; }
+            public int EndPosition { get; set; }
+
+            public void SetRange(int start, int end)
+            {
+                StartPosition = start;
+                EndPosition = end;
+            }
+
+            public void Clear()
+            {
+                StartPosition = 0;
+                EndPosition = 0;
+            }
+        }
     }
 }
