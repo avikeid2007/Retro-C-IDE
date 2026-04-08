@@ -1,0 +1,67 @@
+RetroC IDE
+===========
+
+A retro-style C IDE inspired by Borland Turbo C 3.0, built with WinUI 3 and .NET 8. Fast, lightweight, and familiar for classic C programmers—now modernized for Windows 10/11.
+
+---
+
+Short Description
+-----------------
+A retro-style C IDE for Windows. Syntax highlighting, multi-tab editing, instant compile/run, and classic Turbo C look & feel.
+
+---
+
+Full Description
+----------------
+RetroC IDE brings the nostalgia of Borland Turbo C 3.0 to modern Windows. Enjoy a pixel-perfect blue editor, box-drawing borders, and lightning-fast C compilation with TCC—all in a safe, open-source package. No telemetry, no ads, no nonsense.
+
+Features:
+- Authentic retro UI: blue editor, cyan borders, DOS-style menus
+- Syntax highlighting for C
+- Multi-tab file editing
+- Compile and run instantly (no save required)
+- Inline overlays for linker, make, and help dialogs
+- Message panel for errors and output
+- Project and file management
+- 100% open source, MIT licensed
+
+---
+
+Screenshots
+-----------
+Assets/Screenshot-Retro-C-IDE.png
+Assets/Screenshot-C-compiler.png
+
+---
+
+App Icon
+--------
+Assets/logo.png
+
+---
+
+Privacy Policy
+--------------
+See PRIVACY.md
+
+---
+
+Contact
+-------
+Project site: https://github.com/your-org/RetroC-IDE
+Support: Open an issue on GitHub
+
+---
+
+Age Rating
+----------
+3+ (No mature content)
+
+---
+
+Copyright
+---------
+© 2026 RetroC IDE contributors. Not affiliated with Borland or Embarcadero.
+
+---
+
