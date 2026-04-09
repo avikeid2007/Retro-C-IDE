@@ -9,8 +9,8 @@
 
   <Identity
     Name="34488AvnishKumar.32360E348CAC"
-    Publisher="CN=Avnish"
-    Version="1.0.3.0" />
+    Publisher="CN=1494B4FB-4349-4083-8AFA-16D2A64B8D99"
+    Version="1.0.5.0" />
 
   <mp:PhoneIdentity PhoneProductId="82b6b694-df5b-4819-b76e-404362c2460e" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
@@ -34,7 +34,7 @@
       Executable="$targetnametoken$.exe"
       EntryPoint="$targetentrypoint$">
       <uap:VisualElements
-        DisplayName="RetroC IDE"
+        DisplayName="Retro C IDE"
         Description="A retro-style C IDE inspired by Borland Turbo C 3.0, built with WinUI 3 and .NET 8."
         BackgroundColor="#0000AA"
         Square150x150Logo="Assets\Square150x150Logo.png"

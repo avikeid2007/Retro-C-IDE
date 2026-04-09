@@ -63,7 +63,7 @@
     <GenerateTestArtifacts>True</GenerateTestArtifacts>
     <AppxBundle>Never</AppxBundle>
     <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
-    <PackageCertificateThumbprint>C80AF42658C322A9EEB1330D5D48A1C127C1F26B</PackageCertificateThumbprint>
+    <PackageCertificateThumbprint>1284DBBDB0584CE1CCDD7FF507C04AB57DE1755F</PackageCertificateThumbprint>
   </PropertyGroup>
 
   <!-- Auto-download TCC at build time if not already present -->
