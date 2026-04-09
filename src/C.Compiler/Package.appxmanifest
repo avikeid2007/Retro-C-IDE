@@ -5,13 +5,12 @@
   xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest"
   xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
   xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
-  xmlns:systemai="http://schemas.microsoft.com/appx/manifest/systemai/windows10"
-  IgnorableNamespaces="uap rescap systemai">
+  IgnorableNamespaces="uap rescap">
 
   <Identity
     Name="34488AvnishKumar.32360E348CAC"
-    Publisher="CN=1494B4FB-4349-4083-8AFA-16D2A64B8D99"
-    Version="1.0.0.0" />
+    Publisher="CN=Avnish"
+    Version="1.0.3.0" />
 
   <mp:PhoneIdentity PhoneProductId="82b6b694-df5b-4819-b76e-404362c2460e" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
@@ -48,6 +47,5 @@
 
   <Capabilities>
     <rescap:Capability Name="runFullTrust" />
-    <systemai:Capability Name="systemAIModels"/>
   </Capabilities>
 </Package>

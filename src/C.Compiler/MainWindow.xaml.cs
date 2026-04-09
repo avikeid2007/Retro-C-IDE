@@ -107,7 +107,11 @@ namespace C.Compiler
             AddEditorTab(_fileService.CreateNew());
 
             // Load settings + detect compiler
-            _ = InitAsync();
+            _ = InitAsync().ContinueWith(t =>
+            {
+                if (t.IsFaulted && t.Exception != null)
+                    System.Diagnostics.Debug.WriteLine($"InitAsync failed: {t.Exception}");
+            }, TaskScheduler.Default);
         }
 
         private AppWindow GetAppWindow()

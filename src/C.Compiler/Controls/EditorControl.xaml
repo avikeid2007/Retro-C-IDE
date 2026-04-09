@@ -122,7 +122,15 @@
                 SelectionFlyout="{x:Null}"
                 SelectionHighlightColor="#FF005555"
                 TextChanged="CodeEditor_TextChanged"
-                TextWrapping="NoWrap" />
+                TextWrapping="NoWrap">
+                <!--  Override WinUI 3 themed brushes so background stays dark-blue in all visual states  -->
+                <RichEditBox.Resources>
+                    <SolidColorBrush x:Key="TextControlBackground" Color="#FF000088" />
+                    <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#FF000088" />
+                    <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#FF000088" />
+                    <SolidColorBrush x:Key="TextControlBackgroundDisabled" Color="#FF000088" />
+                </RichEditBox.Resources>
+            </RichEditBox>
             <!--  Block cursor overlay (TC3 style)  -->
             <Border
                 x:Name="BlockCursor"

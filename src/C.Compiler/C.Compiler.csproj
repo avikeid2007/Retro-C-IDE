@@ -54,16 +54,16 @@
   <PropertyGroup>
     <PublishReadyToRun Condition="'$(Configuration)' == 'Debug'">False</PublishReadyToRun>
     <PublishReadyToRun Condition="'$(Configuration)' != 'Debug'">True</PublishReadyToRun>
-    <PublishTrimmed Condition="'$(Configuration)' == 'Debug'">False</PublishTrimmed>
-    <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">True</PublishTrimmed>
+    <PublishTrimmed>False</PublishTrimmed>
     <GenerateTemporaryStoreCertificate>True</GenerateTemporaryStoreCertificate>
     <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
-    <AppxPackageSigningEnabled>False</AppxPackageSigningEnabled>
+    <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
     <AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
     <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
     <GenerateTestArtifacts>True</GenerateTestArtifacts>
     <AppxBundle>Never</AppxBundle>
     <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
+    <PackageCertificateThumbprint>C80AF42658C322A9EEB1330D5D48A1C127C1F26B</PackageCertificateThumbprint>
   </PropertyGroup>
 
   <!-- Auto-download TCC at build time if not already present -->

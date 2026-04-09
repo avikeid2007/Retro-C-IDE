@@ -22,6 +22,7 @@ namespace C.Compiler.Controls
         private EditorDocument _document = new();
         private bool _isUpdating;
         private bool _isHighlighting;
+        private bool _isLoaded;
         private int _windowNumber = 1;
         private DispatcherTimer? _highlightTimer;
         private DispatcherTimer? _cursorBlinkTimer;
@@ -56,8 +57,8 @@ namespace C.Compiler.Controls
             SetEditorDefaults();
             StartCursorBlink();
 
-            Loaded += (_, _) => { CodeEditor.Focus(FocusState.Programmatic); UpdateBlockCursorPosition(); };
-            Unloaded += (_, _) => Cleanup();
+            Loaded += (_, _) => { _isLoaded = true; ApplySyntaxHighlighting(); CodeEditor.Focus(FocusState.Programmatic); UpdateBlockCursorPosition(); };
+            Unloaded += (_, _) => { _isLoaded = false; Cleanup(); };
         }
 
         public void Cleanup()
@@ -215,9 +216,11 @@ namespace C.Compiler.Controls
             return count;
         }
 
+        private static readonly Color DefaultTokenColor = Color.FromArgb(255, 255, 255, 85);
+
         private void ApplySyntaxHighlighting()
         {
-            if (_isHighlighting) return;
+            if (_isHighlighting || !_isLoaded) return;
             _isHighlighting = true;
             _isUpdating = true;
 
@@ -228,18 +231,30 @@ namespace C.Compiler.Controls
                 int selEnd = CodeEditor.Document.Selection.EndPosition;
 
                 string text = GetText();
-                var tokens = _highlighter.Tokenize(text);
+                if (string.IsNullOrEmpty(text)) return;
+
+                // GetText returns \r as paragraph separators; normalize to \n so the
+                // tokenizer's line-ending checks work correctly. The replacement is 1-for-1
+                // so all token Start/Length positions remain valid for GetRange().
+                var tokens = _highlighter.Tokenize(text.Replace('\r', '\n'));
 
                 // Reset all text to default yellow
                 var fullRange = CodeEditor.Document.GetRange(0, text.Length);
                 var defaultFormat = fullRange.CharacterFormat;
-                defaultFormat.ForegroundColor = Color.FromArgb(255, 255, 255, 85);
+                defaultFormat.ForegroundColor = DefaultTokenColor;
                 defaultFormat.Bold = FormatEffect.Off;
                 defaultFormat.Name = "Consolas";
                 defaultFormat.Size = 14;
 
+                // Only apply formatting to tokens that differ from the default.
+                // Skipping default-color tokens avoids flooding the native RichEdit
+                // with hundreds of redundant GetRange/SetCharacterFormat COM calls,
+                // which can corrupt its internal state and cause AccessViolationException.
                 foreach (var token in tokens)
                 {
+                    if (!token.Bold && token.Color.Equals(DefaultTokenColor))
+                        continue;
+
                     if (token.Start + token.Length > text.Length) continue;
 
                     var range = CodeEditor.Document.GetRange(token.Start, token.Start + token.Length);
@@ -252,6 +267,11 @@ namespace C.Compiler.Controls
 
                 // Restore cursor position
                 CodeEditor.Document.Selection.SetRange(selStart, selEnd);
+            }
+            catch (Exception ex) when (ex is not OutOfMemoryException)
+            {
+                // Guard against COM interop / native RichEdit failures
+                System.Diagnostics.Debug.WriteLine($"Syntax highlighting failed: {ex.Message}");
             }
             finally
             {
@@ -304,7 +324,8 @@ namespace C.Compiler.Controls
         private void HighlightTimer_Tick(object? sender, object e)
         {
             _highlightTimer?.Stop();
-            ApplySyntaxHighlighting();
+            if (_isLoaded)
+                ApplySyntaxHighlighting();
         }
 
         private void CodeEditor_SelectionChanged(object sender, RoutedEventArgs e)
