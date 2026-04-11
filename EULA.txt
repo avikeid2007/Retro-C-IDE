@@ -40,7 +40,7 @@ reproduced in THIRD-PARTY-NOTICES.txt and displayed in the app under
 Help > Third-Party Notices.
 
 Key components:
-  - TCC (Tiny C Compiler) — LGPL-2.1. Source: https://bellard.org/tcc/
+  - TCC (Tiny C Compiler) — LGPL-2.1. Source: https://bellard.org/tcc/ | https://repo.or.cz/tinycc.git
   - LLamaSharp — MIT License
   - llama.cpp — MIT License
   - Phi-3 mini model — MIT License (Microsoft). Downloaded at runtime.

@@ -34,6 +34,7 @@ your machine.
   - Find & Replace, Go to Line, Find Procedure
   - Full menu bar with all classic Turbo C menus
   - Error navigation, configurable compiler, project management
+  - TCC source code available at https://repo.or.cz/tinycc.git
 
 ✦ LOCAL AI ASSISTANT (paid exclusive)
   - Powered by Phi-3 mini (~2.3 GB) — runs entirely on YOUR machine

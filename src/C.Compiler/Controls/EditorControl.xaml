@@ -118,6 +118,7 @@
                 IsReadOnly="False"
                 IsSpellCheckEnabled="False"
                 IsTextPredictionEnabled="False"
+                RequestedTheme="Dark"
                 SelectionChanged="CodeEditor_SelectionChanged"
                 SelectionFlyout="{x:Null}"
                 SelectionHighlightColor="#FF005555"

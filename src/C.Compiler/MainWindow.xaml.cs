@@ -1524,7 +1524,7 @@ namespace C.Compiler
                 " 1. TCC — Tiny C Compiler\r\n" +
                 "    Copyright (c) 2001-2004 Fabrice Bellard\r\n" +
                 "    License: GNU Lesser General Public License v2.1 (LGPL-2.1)\r\n" +
-                "    Source:  https://bellard.org/tcc/\r\n" +
+                "    Source:  https://bellard.org/tcc/ | https://repo.or.cz/tinycc.git\r\n" +
                 "    Bundled in binary form. You may replace with a modified version.\r\n" +
                 "\r\n" +
                 " 2. LLamaSharp\r\n" +
@@ -1561,7 +1561,8 @@ namespace C.Compiler
                 " This app is NOT affiliated with Embarcadero, Idera, or Borland.\r\n" +
                 " 'Windows' is a trademark of Microsoft Corporation.\r\n" +
                 "\r\n" +
-                " Full license texts: THIRD-PARTY-NOTICES.txt (in app install folder)\r\n" +
+                " Full license texts: THIRD-PARTY-NOTICES.txt and LGPL-2.1.txt\r\n" +
+                " (both included in the app install folder)\r\n" +
                 "═══════════════════════════════════════════════════════════════\r\n");
         }
 
