@@ -123,6 +123,25 @@
                 SelectionHighlightColor="#FF005555"
                 TextChanged="CodeEditor_TextChanged"
                 TextWrapping="NoWrap">
+                <RichEditBox.ContextFlyout>
+                    <MenuFlyout>
+                        <MenuFlyoutItem
+                            x:Name="AskAIMenuItem"
+                            Click="AskAI_Click"
+                            Text="Ask AI"
+                            Visibility="Collapsed">
+                            <MenuFlyoutItem.Icon>
+                                <FontIcon Glyph="&#xE946;" />
+                            </MenuFlyoutItem.Icon>
+                        </MenuFlyoutItem>
+                        <MenuFlyoutSeparator x:Name="AskAISeparator" Visibility="Collapsed" />
+                        <MenuFlyoutItem Click="ContextCut_Click" Text="Cut" />
+                        <MenuFlyoutItem Click="ContextCopy_Click" Text="Copy" />
+                        <MenuFlyoutItem Click="ContextPaste_Click" Text="Paste" />
+                        <MenuFlyoutSeparator />
+                        <MenuFlyoutItem Click="ContextSelectAll_Click" Text="Select All" />
+                    </MenuFlyout>
+                </RichEditBox.ContextFlyout>
                 <!--  Override WinUI 3 themed brushes so background stays dark-blue in all visual states  -->
                 <RichEditBox.Resources>
                     <SolidColorBrush x:Key="TextControlBackground" Color="#FF000088" />

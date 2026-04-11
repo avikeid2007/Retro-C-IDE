@@ -24,6 +24,8 @@ namespace C.Compiler
     {
         private Window? _window;
 
+        public static Window? MainWindow { get; private set; }
+
         public App()
         {
             InitializeComponent();
@@ -33,6 +35,7 @@ namespace C.Compiler
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
             _window = new MainWindow();
+            MainWindow = _window;
             _window.Activate();
         }
 

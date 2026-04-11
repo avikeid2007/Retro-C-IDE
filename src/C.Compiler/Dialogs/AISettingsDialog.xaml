@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentDialog
+    x:Class="C.Compiler.Dialogs.AISettingsDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Background="#FF0000AA"
+    BorderBrush="#FF00AAAA"
+    BorderThickness="2"
+    CloseButtonText="Cancel"
+    CornerRadius="0"
+    DefaultButton="Primary"
+    Foreground="#FFFFFFFF"
+    PrimaryButtonText="OK"
+    Title="AI Settings">
+
+    <StackPanel
+        MinWidth="440"
+        Spacing="14">
+
+        <!--  ═══ MODEL STATUS ═══  -->
+        <StackPanel Spacing="4">
+            <TextBlock
+                FontFamily="Consolas"
+                FontSize="13"
+                FontWeight="Bold"
+                Foreground="#FF00AAAA"
+                Text="Model" />
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock
+                    x:Name="ModelStatusText"
+                    Grid.Column="0"
+                    FontFamily="Consolas"
+                    FontSize="12"
+                    Foreground="#FFFFFFFF"
+                    Text="Checking..."
+                    TextWrapping="Wrap"
+                    VerticalAlignment="Center" />
+                <StackPanel
+                    Grid.Column="1"
+                    Orientation="Horizontal"
+                    Spacing="4">
+                    <Button
+                        x:Name="DownloadBtn"
+                        MinWidth="0"
+                        MinHeight="0"
+                        Padding="8,3"
+                        Background="#FF005588"
+                        BorderBrush="#FF00AAAA"
+                        BorderThickness="1"
+                        Click="Download_Click"
+                        CornerRadius="0">
+                        <TextBlock
+                            FontFamily="Consolas"
+                            FontSize="11"
+                            Foreground="#FFFFFFFF"
+                            Text="Download" />
+                    </Button>
+                    <Button
+                        x:Name="DeleteBtn"
+                        MinWidth="0"
+                        MinHeight="0"
+                        Padding="8,3"
+                        Background="#FF550000"
+                        BorderBrush="#FF00AAAA"
+                        BorderThickness="1"
+                        Click="Delete_Click"
+                        CornerRadius="0">
+                        <TextBlock
+                            FontFamily="Consolas"
+                            FontSize="11"
+                            Foreground="#FFFF5555"
+                            Text="Delete" />
+                    </Button>
+                </StackPanel>
+            </Grid>
+            <!--  Download progress  -->
+            <ProgressBar
+                x:Name="DownloadProgress"
+                Height="6"
+                Background="#FF000055"
+                CornerRadius="0"
+                Foreground="#FF00AAAA"
+                Maximum="100"
+                Visibility="Collapsed" />
+            <TextBlock
+                x:Name="DownloadStatusText"
+                FontFamily="Consolas"
+                FontSize="11"
+                Foreground="#FF00AA00"
+                Text=""
+                Visibility="Collapsed" />
+        </StackPanel>
+
+        <!--  ═══ CUSTOM MODEL PATH ═══  -->
+        <StackPanel Spacing="4">
+            <TextBlock
+                FontFamily="Consolas"
+                FontSize="13"
+                Foreground="#FFFFFF00"
+                Text="Custom Model Path (.gguf):" />
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBox
+                    x:Name="CustomModelPathBox"
+                    Grid.Column="0"
+                    Background="#FF000055"
+                    BorderBrush="#FF00AAAA"
+                    CornerRadius="0"
+                    FontFamily="Consolas"
+                    FontSize="13"
+                    Foreground="#FFFFFFFF"
+                    PlaceholderText="(use default Phi-3 mini)" />
+                <Button
+                    x:Name="BrowseBtn"
+                    Grid.Column="1"
+                    MinWidth="0"
+                    MinHeight="0"
+                    Margin="4,0,0,0"
+                    Padding="8,4"
+                    Background="#FF005588"
+                    BorderBrush="#FF00AAAA"
+                    BorderThickness="1"
+                    Click="Browse_Click"
+                    CornerRadius="0">
+                    <TextBlock
+                        FontFamily="Consolas"
+                        FontSize="11"
+                        Foreground="#FFFFFFFF"
+                        Text="..." />
+                </Button>
+            </Grid>
+        </StackPanel>
+
+        <!--  ═══ GPU LAYERS ═══  -->
+        <StackPanel Spacing="4">
+            <TextBlock
+                FontFamily="Consolas"
+                FontSize="13"
+                Foreground="#FFFFFF00"
+                Text="GPU Layers (0 = CPU only):" />
+            <NumberBox
+                x:Name="GpuLayersBox"
+                Background="#FF000055"
+                BorderBrush="#FF00AAAA"
+                CornerRadius="0"
+                FontFamily="Consolas"
+                FontSize="13"
+                Foreground="#FFFFFFFF"
+                Maximum="128"
+                Minimum="0"
+                SpinButtonPlacementMode="Inline"
+                Value="0" />
+        </StackPanel>
+
+        <!--  ═══ CONTEXT SIZE ═══  -->
+        <StackPanel Spacing="4">
+            <TextBlock
+                FontFamily="Consolas"
+                FontSize="13"
+                Foreground="#FFFFFF00"
+                Text="Context Window (tokens):" />
+            <ComboBox
+                x:Name="ContextSizeCombo"
+                Width="200"
+                Background="#FF000055"
+                BorderBrush="#FF00AAAA"
+                CornerRadius="0"
+                FontFamily="Consolas"
+                FontSize="13"
+                Foreground="#FFFFFFFF">
+                <ComboBoxItem Content="2048" Tag="2048" />
+                <ComboBoxItem Content="4096" Tag="4096" IsSelected="True" />
+                <ComboBoxItem Content="8192" Tag="8192" />
+                <ComboBoxItem Content="16384" Tag="16384" />
+            </ComboBox>
+        </StackPanel>
+
+        <!--  ═══ MAX TOKENS ═══  -->
+        <StackPanel Spacing="4">
+            <TextBlock
+                FontFamily="Consolas"
+                FontSize="13"
+                Foreground="#FFFFFF00"
+                Text="Max Response Tokens:" />
+            <NumberBox
+                x:Name="MaxTokensBox"
+                Background="#FF000055"
+                BorderBrush="#FF00AAAA"
+                CornerRadius="0"
+                FontFamily="Consolas"
+                FontSize="13"
+                Foreground="#FFFFFFFF"
+                Maximum="8192"
+                Minimum="128"
+                SpinButtonPlacementMode="Inline"
+                Value="2048" />
+        </StackPanel>
+
+        <!--  ═══ TEMPERATURE ═══  -->
+        <StackPanel Spacing="4">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock
+                    Grid.Column="0"
+                    FontFamily="Consolas"
+                    FontSize="13"
+                    Foreground="#FFFFFF00"
+                    Text="Temperature:" />
+                <TextBlock
+                    x:Name="TempValueText"
+                    Grid.Column="1"
+                    FontFamily="Consolas"
+                    FontSize="13"
+                    Foreground="#FF00AAAA"
+                    Text="0.3" />
+            </Grid>
+            <Slider
+                x:Name="TemperatureSlider"
+                Maximum="1.5"
+                Minimum="0"
+                StepFrequency="0.1"
+                Value="0.3"
+                ValueChanged="Temperature_ValueChanged" />
+            <TextBlock
+                FontFamily="Consolas"
+                FontSize="10"
+                Foreground="#FF888888"
+                Text="0.0 = deterministic · 0.3 = focused · 1.0 = creative" />
+        </StackPanel>
+
+        <!--  ═══ MODEL INFO ═══  -->
+        <Border
+            Padding="6,4"
+            Background="#FF000044"
+            BorderBrush="#FF005588"
+            BorderThickness="1">
+            <TextBlock
+                x:Name="ModelInfoText"
+                FontFamily="Consolas"
+                FontSize="10"
+                Foreground="#FF888888"
+                Text="Default: Phi-3 mini 4K instruct Q4 (~2.3 GB)"
+                TextWrapping="Wrap" />
+        </Border>
+    </StackPanel>
+</ContentDialog>

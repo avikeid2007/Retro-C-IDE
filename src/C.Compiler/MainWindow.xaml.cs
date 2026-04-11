@@ -1,11 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-
 using C.Compiler.Controls;
 using C.Compiler.Models;
 using C.Compiler.Services;
@@ -17,6 +9,13 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
+
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.IO;
+using System.Threading.Tasks;
 
 using Windows.Graphics;
 using Windows.UI;
@@ -112,6 +111,10 @@ namespace C.Compiler
                 if (t.IsFaulted && t.Exception != null)
                     System.Diagnostics.Debug.WriteLine($"InitAsync failed: {t.Exception}");
             }, TaskScheduler.Default);
+
+#if BUILD_AI
+            InitAIChatPanel();
+#endif
         }
 
         private AppWindow GetAppWindow()
@@ -153,6 +156,10 @@ namespace C.Compiler
             editor.CursorMoved += OnCursorMoved;
             editor.ContentChanged += OnContentChanged;
             editor.CloseRequested += OnEditorCloseRequested;
+#if BUILD_AI
+            editor.ShowAskAIContextMenu(true);
+            editor.AskAIRequested += OnEditorAskAIRequested;
+#endif
             _editors.Add(editor);
 
             // Wrap in a Grid to force stretch — TabView content area doesn't always propagate Stretch
@@ -216,6 +223,9 @@ namespace C.Compiler
             editor.CursorMoved -= OnCursorMoved;
             editor.ContentChanged -= OnContentChanged;
             editor.CloseRequested -= OnEditorCloseRequested;
+#if BUILD_AI
+            editor.AskAIRequested -= OnEditorAskAIRequested;
+#endif
             editor.Cleanup();
             _editors.RemoveAt(index);
             EditorTabs.TabItems.RemoveAt(index);
@@ -411,6 +421,10 @@ namespace C.Compiler
                 AddMessage($"Saved: {ActiveEditor.Document.FilePath}");
                 UpdateTabHeaders();
             }
+            else
+            {
+                AddMessage("Error: Could not save file. Check disk space and file permissions.");
+            }
         }
 
         private async void FileSaveAs_Click(object sender, RoutedEventArgs e)
@@ -421,6 +435,10 @@ namespace C.Compiler
             {
                 AddMessage($"Saved as: {ActiveEditor.Document.FilePath}");
                 UpdateTabHeaders();
+            }
+            else
+            {
+                AddMessage("Error: Could not save file. Check disk space and file permissions.");
             }
         }
 
@@ -685,6 +703,12 @@ namespace C.Compiler
 
         private async Task CompileCurrentFileAsync(bool compileOnly)
         {
+            if (ActiveEditor.IsReadOnly)
+            {
+                AddMessage("Cannot compile a read-only file. Switch to a C source file tab first.");
+                return;
+            }
+
             var doc = ActiveEditor.Document;
             doc.Content = ActiveEditor.GetText();
 
@@ -694,7 +718,7 @@ namespace C.Compiler
             if (doc.IsNewFile || doc.IsDirty)
             {
                 // Write to a temp file so the user never has to save manually
-                string tempDir = Path.Combine(Path.GetTempPath(), "TurboC");
+                string tempDir = Path.Combine(Path.GetTempPath(), "RetroC-IDE");
                 Directory.CreateDirectory(tempDir);
 
                 // Use a stable name based on the doc so the EXE path is predictable
@@ -703,7 +727,7 @@ namespace C.Compiler
                     : Path.GetFileNameWithoutExtension(doc.FileName);
                 sourceFilePath = Path.Combine(tempDir, safeName + ".c");
                 await File.WriteAllTextAsync(sourceFilePath, doc.Content);
-                usedTempFile = doc.IsNewFile; // only treat as temp if truly unsaved
+                usedTempFile = true; // always clean up temp files after a successful Make
             }
             else
             {
@@ -1010,6 +1034,51 @@ namespace C.Compiler
         }
 
         // ═══════════════════════════════════════
+        // OPTIONS > AI SETTINGS
+        // ═══════════════════════════════════════
+
+        private async void OptionsAI_Click(object sender, RoutedEventArgs e)
+        {
+            CloseAllMenus();
+#if BUILD_AI
+            if (_aiChatService == null)
+            {
+                _aiChatService = new global::C.Compiler.AI.Services.LocalAIChatService();
+                ApplyAISettings();
+            }
+
+            var dialog = new Dialogs.AISettingsDialog
+            {
+                XamlRoot = Content.XamlRoot,
+                IsModelDownloaded = () => _aiChatService.IsModelDownloaded,
+                GetDefaultModelPath = () => _aiChatService.ModelManager.ModelPath,
+                DownloadModelFunc = async (progress, ct) =>
+                    await _aiChatService.ModelManager.DownloadModelAsync(progress, ct),
+                DeleteModelFunc = () => _aiChatService.ModelManager.DeleteModel(),
+            };
+
+            dialog.LoadSettings(_settingsService.Settings.AI);
+
+            var result = await dialog.ShowAsync();
+            if (result == ContentDialogResult.Primary)
+            {
+                var newSettings = dialog.GetSettings();
+                _settingsService.Settings.AI = newSettings;
+                await _settingsService.SaveAsync();
+
+                // If model is loaded and settings changed, unload so it reloads with new params
+                if (_aiChatService.IsModelLoaded)
+                {
+                    await _aiChatService.UnloadModelAsync();
+                    AddMessage("AI model unloaded — will reload with new settings on next message.");
+                }
+                ApplyAISettings();
+                AddMessage("AI settings saved.");
+            }
+#endif
+        }
+
+        // ═══════════════════════════════════════
         // OPTIONS > SAVE / RETRIEVE
         // ═══════════════════════════════════════
 
@@ -1077,67 +1146,140 @@ namespace C.Compiler
         // HELP MENU
         // ═══════════════════════════════════════
 
+        private void OpenHelpTab(string title, string content)
+        {
+            // Reuse an existing help tab with the same title if already open
+            for (int i = 0; i < EditorTabs.TabItems.Count; i++)
+            {
+                if (EditorTabs.TabItems[i] is TabViewItem existing &&
+                    existing.Header?.ToString() == title)
+                {
+                    EditorTabs.SelectedIndex = i;
+                    return;
+                }
+            }
+
+            var doc = new EditorDocument
+            {
+                FileName = title,
+                FilePath = null,
+                Content = content,
+                IsDirty = false,
+            };
+
+            var editor = new EditorControl();
+            editor.Document = doc;
+            editor.WindowNumber = _editors.Count + 1;
+            editor.CursorMoved += OnCursorMoved;
+            editor.ContentChanged += OnContentChanged;
+            editor.CloseRequested += OnEditorCloseRequested;
+            _editors.Add(editor);
+
+            // Mark read-only after the editor is loaded
+            editor.Loaded += (_, _) => editor.SetReadOnly(true);
+
+            var wrapper = new Grid();
+            wrapper.Children.Add(editor);
+
+            var tab = new TabViewItem
+            {
+                Header = title,
+                Content = wrapper,
+                IsClosable = true,
+                VerticalContentAlignment = Microsoft.UI.Xaml.VerticalAlignment.Stretch,
+                HorizontalContentAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Stretch,
+            };
+            EditorTabs.TabItems.Add(tab);
+            EditorTabs.SelectedItem = tab;
+        }
+
         private void HelpContents_Click(object sender, RoutedEventArgs e)
         {
             CloseAllMenus();
-            ClearMessages();
-            AddMessage("═══════════════════════════════════════════════════════════════");
-            AddMessage("                 RETROC IDE — HELP CONTENTS");
-            AddMessage("═══════════════════════════════════════════════════════════════");
-            AddMessage("");
-            AddMessage(" KEYBOARD SHORTCUTS:");
-            AddMessage("   F2           Save current file");
-            AddMessage("   F3           Open file");
-            AddMessage("   F9           Make (compile + link)");
-            AddMessage("   Alt+F9       Compile to OBJ only");
-            AddMessage("   Ctrl+F9      Run program");
-            AddMessage("   Alt+F5       User screen");
-            AddMessage("   Alt+X        Quit");
-            AddMessage("   Ctrl+F       Find text");
-            AddMessage("   Ctrl+H       Find and replace");
-            AddMessage("   Ctrl+G       Go to line number");
-            AddMessage("   Alt+F7       Previous error");
-            AddMessage("   Alt+F8       Next error");
-            AddMessage("   Ctrl+Z       Undo");
-            AddMessage("   Ctrl+Y       Redo");
-            AddMessage("   F1           Help");
-            AddMessage("   Escape       Close dialog / menu");
-            AddMessage("   F6           Next window");
-            AddMessage("   Alt+1..9     Switch to window N");
-            AddMessage("   Alt+F3       Close window");
-            AddMessage("");
-            AddMessage(" MENUS:");
-            AddMessage("   File      — New, Open, Save, SaveAs, DOS Shell, Quit");
-            AddMessage("   Edit      — Undo, Redo, Cut, Copy, Paste, Clear");
-            AddMessage("   Search    — Find, Replace, Go to Line, Error navigation");
-            AddMessage("   Run       — Run program, set Arguments");
-            AddMessage("   Compile   — Compile to OBJ, Make EXE, Link, Build All");
-            AddMessage("   Options   — Compiler settings, Directories");
-            AddMessage("   Window    — Next, Previous, Close, Close All, List All");
-            AddMessage("");
-            AddMessage(" COMPILER: Uses bundled TCC (Tiny C Compiler)");
-            AddMessage("   Supports #include <stdio.h> and standard C library.");
-            AddMessage("   Configure alternative compiler in Options > Compiler.");
-            AddMessage("═══════════════════════════════════════════════════════════════");
+            OpenHelpTab("HELP.TXT",
+                "═══════════════════════════════════════════════════════════════\r\n" +
+                "                 RETROC IDE — HELP CONTENTS\r\n" +
+                "═══════════════════════════════════════════════════════════════\r\n" +
+                "\r\n" +
+                " KEYBOARD SHORTCUTS:\r\n" +
+                "   F2           Save current file\r\n" +
+                "   F3           Open file\r\n" +
+                "   F9           Make (compile + link)\r\n" +
+                "   Alt+F9       Compile to OBJ only\r\n" +
+                "   Ctrl+F9      Run program\r\n" +
+                "   Alt+F5       User screen\r\n" +
+                "   Alt+X        Quit\r\n" +
+                "   Ctrl+F       Find text\r\n" +
+                "   Ctrl+H       Find and replace\r\n" +
+                "   Ctrl+G       Go to line number\r\n" +
+                "   Alt+F7       Previous error\r\n" +
+                "   Alt+F8       Next error\r\n" +
+                "   Ctrl+Z       Undo\r\n" +
+                "   Ctrl+Y       Redo\r\n" +
+                "   Ctrl+I       Toggle AI panel\r\n" +
+                "   Ctrl+Enter   Send AI message\r\n" +
+                "   F1           Help\r\n" +
+                "   Escape       Close dialog / menu\r\n" +
+                "   F6           Next window\r\n" +
+                "   Alt+1..9     Switch to window N\r\n" +
+                "   Alt+F3       Close window\r\n" +
+                "\r\n" +
+                " MENUS:\r\n" +
+                "   File      — New, Open, Save, SaveAs, DOS Shell, Quit\r\n" +
+                "   Edit      — Undo, Redo, Cut, Copy, Paste, Clear\r\n" +
+                "   Search    — Find, Replace, Go to Line, Error navigation\r\n" +
+                "   Run       — Run program, set Arguments\r\n" +
+                "   Compile   — Compile to OBJ, Make EXE, Link, Build All\r\n" +
+                "   Options   — Compiler settings, Directories, AI Settings\r\n" +
+                "   Window    — Next, Previous, Close, Close All, List All\r\n" +
+                "   Help      — Contents, Index, Topic Search, AI Guide\r\n" +
+                "\r\n" +
+                " COMPILER: Uses bundled TCC (Tiny C Compiler)\r\n" +
+                "   Supports #include <stdio.h> and standard C library.\r\n" +
+                "   Configure alternative compiler in Options > Compiler.\r\n" +
+                "═══════════════════════════════════════════════════════════════\r\n");
         }
 
         private void HelpIndex_Click(object sender, RoutedEventArgs e)
         {
             CloseAllMenus();
-            ClearMessages();
-            AddMessage("═══ C KEYWORD INDEX ═══");
-            AddMessage("auto  break  case  char  const  continue  default  do  double");
-            AddMessage("else  enum  extern  float  for  goto  if  int  long  register");
-            AddMessage("return  short  signed  sizeof  static  struct  switch  typedef");
-            AddMessage("union  unsigned  void  volatile  while");
-            AddMessage("");
-            AddMessage("═══ STANDARD LIBRARY ═══");
-            AddMessage("<stdio.h>   printf  scanf  fprintf  fscanf  fopen  fclose  fgets");
-            AddMessage("<stdlib.h>  malloc  free  calloc  realloc  atoi  atof  exit  rand");
-            AddMessage("<string.h>  strlen  strcpy  strcat  strcmp  memcpy  memset  strstr");
-            AddMessage("<math.h>    sin  cos  tan  sqrt  pow  abs  ceil  floor  log");
-            AddMessage("<ctype.h>   isalpha  isdigit  isalnum  toupper  tolower  isspace");
-            AddMessage("<time.h>    time  clock  difftime  localtime  strftime");
+            OpenHelpTab("INDEX.TXT",
+                "═══ C KEYWORD INDEX ═══\r\n" +
+                "\r\n" +
+                "auto      break     case      char      const\r\n" +
+                "continue  default   do        double    else\r\n" +
+                "enum      extern    float     for       goto\r\n" +
+                "if        int       long      register  return\r\n" +
+                "short     signed    sizeof    static    struct\r\n" +
+                "switch    typedef   union     unsigned  void\r\n" +
+                "volatile  while\r\n" +
+                "\r\n" +
+                "═══ STANDARD LIBRARY ═══\r\n" +
+                "\r\n" +
+                "<stdio.h>\r\n" +
+                "   printf   scanf    fprintf  fscanf   fopen\r\n" +
+                "   fclose   fgets    fputs    feof     fflush\r\n" +
+                "\r\n" +
+                "<stdlib.h>\r\n" +
+                "   malloc   free     calloc   realloc  atoi\r\n" +
+                "   atof     exit     rand     srand    abs\r\n" +
+                "\r\n" +
+                "<string.h>\r\n" +
+                "   strlen   strcpy   strcat   strcmp   strchr\r\n" +
+                "   strstr   memcpy   memset   memmove  strncpy\r\n" +
+                "\r\n" +
+                "<math.h>\r\n" +
+                "   sin      cos      tan      sqrt     pow\r\n" +
+                "   ceil     floor    fabs     log      log10\r\n" +
+                "\r\n" +
+                "<ctype.h>\r\n" +
+                "   isalpha  isdigit  isalnum  isspace  isupper\r\n" +
+                "   islower  toupper  tolower  isprint  ispunct\r\n" +
+                "\r\n" +
+                "<time.h>\r\n" +
+                "   time     clock    difftime localtime strftime\r\n" +
+                "\r\n" +
+                " Tip: Use Help > Topic Search (Ctrl+F1) to look up any function.\r\n");
         }
 
         // ═══════════════════════════════════════
@@ -1211,74 +1353,144 @@ namespace C.Compiler
         private void HelpOnHelp_Click(object sender, RoutedEventArgs e)
         {
             CloseAllMenus();
-            ClearMessages();
-            AddMessage("═══ Help on Help ═══");
-            AddMessage("");
-            AddMessage("  F1              Help Contents — keyboard shortcuts and menu summary");
-            AddMessage("  Shift+F1       Help Index — C keywords and standard library reference");
-            AddMessage("  Ctrl+F1        Topic Search — look up a specific function or keyword");
-            AddMessage("  Alt+F1         Previous Topic — return to the last viewed help topic");
-            AddMessage("");
-            AddMessage("  Tip: Click any error in the message panel to jump to that line.");
-            AddMessage("  Tip: Use Search > Find Procedure to jump to a function definition.");
+            OpenHelpTab("HELP-ON-HELP.TXT",
+                "═══ Help on Help ═══\r\n" +
+                "\r\n" +
+                "  F1              Help Contents — keyboard shortcuts and menu summary\r\n" +
+                "  Shift+F1       Help Index — C keywords and standard library reference\r\n" +
+                "  Ctrl+F1        Topic Search — look up a specific function or keyword\r\n" +
+                "  Alt+F1         Previous Topic — return to the last viewed help topic\r\n" +
+                "\r\n" +
+                "  Tip: Click any error in the message panel to jump to that line.\r\n" +
+                "  Tip: Use Search > Find Procedure to jump to a function definition.\r\n");
+        }
+
+        private void HelpAI_Click(object sender, RoutedEventArgs e)
+        {
+            CloseAllMenus();
+            OpenHelpTab("AI-GUIDE.TXT",
+                "═══════════════════════════════════════════════════════════════\r\n" +
+                "              RETROC IDE — AI ASSISTANT GUIDE\r\n" +
+                "═══════════════════════════════════════════════════════════════\r\n" +
+                "\r\n" +
+                " QUICK START:\r\n" +
+                "   1. Press Ctrl+I to open the AI panel.\r\n" +
+                "   2. Type a question and press Ctrl+Enter to send.\r\n" +
+                "   3. On first use, the model (~2.3 GB) downloads automatically.\r\n" +
+                "\r\n" +
+                " TWO MODES:\r\n" +
+                "   Ask Mode (default)  — Ask C questions, explain code & errors.\r\n" +
+                "   Agent Mode          — AI suggests code edits with Apply/Reject.\r\n" +
+                "   Switch modes using the Ask/Agent tabs at the top of the panel.\r\n" +
+                "\r\n" +
+                " ASK MODE — WHAT YOU CAN DO:\r\n" +
+                "   * Type any C programming question in the chat box.\r\n" +
+                "   * Select code in editor -> right-click -> 'Ask AI' for analysis.\r\n" +
+                "   * Right-click a compiler error -> 'Explain Error with AI'.\r\n" +
+                "   * Ask for code examples: 'write a linked list in C'.\r\n" +
+                "   * Responses include Copy and Insert buttons for code blocks.\r\n" +
+                "\r\n" +
+                " AGENT MODE — WHAT YOU CAN DO:\r\n" +
+                "   * Request code changes: 'add input validation to main()'.\r\n" +
+                "   * Fix errors: 'fix the segfault on line 12'.\r\n" +
+                "   * Create new files: 'create a header file for my stack'.\r\n" +
+                "   * AI shows a diff (red=removed, green=added).\r\n" +
+                "   * Click Apply to apply the edit and auto-compile.\r\n" +
+                "   * Click Reject to discard the suggestion.\r\n" +
+                "   * Editor context is always sent automatically in Agent mode.\r\n" +
+                "\r\n" +
+                " CONTEXT (the paperclip button in chat):\r\n" +
+                "   ON  — AI sees your file name, code, cursor position, and errors.\r\n" +
+                "   OFF — Only your typed message is sent (general questions).\r\n" +
+                "   Agent mode always sends context regardless of this toggle.\r\n" +
+                "\r\n" +
+                " KEYBOARD SHORTCUTS:\r\n" +
+                "   Ctrl+I         Toggle AI panel\r\n" +
+                "   Ctrl+Enter     Send message\r\n" +
+                "   Escape         Cancel current AI response\r\n" +
+                "\r\n" +
+                " SETTINGS (Options -> AI Settings):\r\n" +
+                "   Model         — Download/delete/browse for custom .gguf model\r\n" +
+                "   GPU Layers    — Offload layers to GPU (0 = CPU only)\r\n" +
+                "   Context Size  — Tokens the AI can see (default: 4096)\r\n" +
+                "   Max Tokens    — Max response length (default: 2048)\r\n" +
+                "   Temperature   — 0.0 = precise, 1.0 = creative (default: 0.3)\r\n" +
+                "\r\n" +
+                " CUSTOM MODELS:\r\n" +
+                "   Options -> AI Settings -> Browse to select any .gguf file.\r\n" +
+                "   Recommended: instruction-tuned models (Phi-3, Llama 3, Mistral).\r\n" +
+                "   Very small models (<3B) may not follow Agent mode format reliably.\r\n" +
+                "\r\n" +
+                " TROUBLESHOOTING:\r\n" +
+                "   Slow responses  — Reduce context size/max tokens, use GPU layers.\r\n" +
+                "   Gibberish       — Lower temperature to 0.1-0.2.\r\n" +
+                "   No edit blocks  — Use a larger model (7B+) for Agent mode.\r\n" +
+                "   High memory     — Model needs ~3 GB RAM. Close other apps.\r\n" +
+                "\r\n" +
+                " PRIVACY:\r\n" +
+                "   * 100% local — no cloud, no API keys, no telemetry.\r\n" +
+                "   * Your code never leaves your machine.\r\n" +
+                "   * Model stored in: %LOCALAPPDATA%\\RetroC-IDE\\models\\\r\n" +
+                "═══════════════════════════════════════════════════════════════\r\n");
         }
 
         private void ShowHelpForTopic(string topic)
         {
             var topics = new System.Collections.Generic.Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
             {
-                ["printf"]    = new[] { "printf — Formatted output to stdout", "  int printf(const char *format, ...);", "  Formats and prints to standard output. Returns number of chars written." },
-                ["scanf"]     = new[] { "scanf — Formatted input from stdin", "  int scanf(const char *format, ...);", "  Reads formatted data from stdin. Returns number of items read." },
-                ["fprintf"]   = new[] { "fprintf — Formatted output to a file", "  int fprintf(FILE *stream, const char *format, ...);", "  Like printf, but writes to the given file stream." },
-                ["fscanf"]    = new[] { "fscanf — Formatted input from a file", "  int fscanf(FILE *stream, const char *format, ...);", "  Like scanf, but reads from the given file stream." },
-                ["fopen"]     = new[] { "fopen — Open a file", "  FILE *fopen(const char *path, const char *mode);", "  Modes: \"r\" read, \"w\" write, \"a\" append, \"rb\"/\"wb\" binary. Returns NULL on failure." },
-                ["fclose"]    = new[] { "fclose — Close a file", "  int fclose(FILE *stream);", "  Closes file and flushes buffers. Returns 0 on success." },
-                ["fgets"]     = new[] { "fgets — Read a line from a file", "  char *fgets(char *s, int n, FILE *stream);", "  Reads up to n-1 characters. Returns NULL on error/EOF." },
-                ["fputs"]     = new[] { "fputs — Write a string to a file", "  int fputs(const char *s, FILE *stream);", "  Writes string s to stream (no null terminator)." },
-                ["malloc"]    = new[] { "malloc — Allocate memory", "  void *malloc(size_t size);", "  Allocates size bytes (uninitialized). Returns NULL on failure. Free with free()." },
-                ["calloc"]    = new[] { "calloc — Allocate zero-initialized memory", "  void *calloc(size_t n, size_t size);", "  Allocates n*size bytes, all initialized to zero." },
-                ["realloc"]   = new[] { "realloc — Resize allocated memory", "  void *realloc(void *ptr, size_t size);", "  Resizes the block pointed to by ptr to size bytes." },
-                ["free"]      = new[] { "free — Free allocated memory", "  void free(void *ptr);", "  Releases memory allocated by malloc/calloc/realloc." },
-                ["strlen"]    = new[] { "strlen — String length", "  size_t strlen(const char *s);", "  Returns number of characters before the null terminator." },
-                ["strcpy"]    = new[] { "strcpy — Copy string", "  char *strcpy(char *dest, const char *src);", "  Copies src to dest including null terminator. Returns dest." },
-                ["strcat"]    = new[] { "strcat — Concatenate strings", "  char *strcat(char *dest, const char *src);", "  Appends src to dest. Returns dest." },
-                ["strcmp"]    = new[] { "strcmp — Compare strings", "  int strcmp(const char *s1, const char *s2);", "  Returns 0 if equal, <0 if s1<s2, >0 if s1>s2." },
-                ["strchr"]    = new[] { "strchr — Find character in string", "  char *strchr(const char *s, int c);", "  Returns pointer to first occurrence of c, or NULL." },
-                ["strstr"]    = new[] { "strstr — Find substring", "  char *strstr(const char *haystack, const char *needle);", "  Returns pointer to first occurrence of needle, or NULL." },
-                ["memcpy"]    = new[] { "memcpy — Copy memory", "  void *memcpy(void *dest, const void *src, size_t n);", "  Copies n bytes. Regions must not overlap." },
-                ["memset"]    = new[] { "memset — Fill memory", "  void *memset(void *s, int c, size_t n);", "  Fills n bytes of s with byte value c." },
-                ["sqrt"]      = new[] { "sqrt — Square root", "  double sqrt(double x);", "  Returns square root of x. Requires <math.h>." },
-                ["pow"]       = new[] { "pow — Power", "  double pow(double base, double exp);", "  Returns base raised to exp. Requires <math.h>." },
-                ["sin"]       = new[] { "sin — Sine", "  double sin(double x);", "  Returns sine of x (radians). Requires <math.h>." },
-                ["cos"]       = new[] { "cos — Cosine", "  double cos(double x);", "  Returns cosine of x (radians). Requires <math.h>." },
-                ["tan"]       = new[] { "tan — Tangent", "  double tan(double x);", "  Returns tangent of x (radians). Requires <math.h>." },
-                ["ceil"]      = new[] { "ceil — Round up", "  double ceil(double x);", "  Returns smallest integer >= x. Requires <math.h>." },
-                ["floor"]     = new[] { "floor — Round down", "  double floor(double x);", "  Returns largest integer <= x. Requires <math.h>." },
-                ["abs"]       = new[] { "abs — Absolute value (int)", "  int abs(int n);", "  Returns absolute value of n. Requires <stdlib.h>." },
-                ["atoi"]      = new[] { "atoi — String to integer", "  int atoi(const char *s);", "  Converts string to int. Non-numeric characters stop parsing." },
-                ["atof"]      = new[] { "atof — String to double", "  double atof(const char *s);", "  Converts string to double." },
-                ["exit"]      = new[] { "exit — Terminate program", "  void exit(int status);", "  Terminates program, flushing buffers. status 0 = success." },
-                ["isalpha"]   = new[] { "isalpha — Test if alphabetic", "  int isalpha(int c);", "  Non-zero if c is A-Z or a-z. Requires <ctype.h>." },
-                ["isdigit"]   = new[] { "isdigit — Test if digit", "  int isdigit(int c);", "  Non-zero if c is 0-9. Requires <ctype.h>." },
-                ["isspace"]   = new[] { "isspace — Test if whitespace", "  int isspace(int c);", "  Non-zero if c is space/tab/newline/etc. Requires <ctype.h>." },
-                ["toupper"]   = new[] { "toupper — Convert to uppercase", "  int toupper(int c);", "  Returns uppercase equivalent of c. Requires <ctype.h>." },
-                ["tolower"]   = new[] { "tolower — Convert to lowercase", "  int tolower(int c);", "  Returns lowercase equivalent of c. Requires <ctype.h>." },
-                ["time"]      = new[] { "time — Get current time", "  time_t time(time_t *t);", "  Returns current calendar time. Requires <time.h>." },
-                ["clock"]     = new[] { "clock — Processor time used", "  clock_t clock(void);", "  Divide by CLOCKS_PER_SEC for elapsed seconds. Requires <time.h>." },
+                ["printf"] = new[] { "printf — Formatted output to stdout", "  int printf(const char *format, ...);", "  Formats and prints to standard output. Returns number of chars written." },
+                ["scanf"] = new[] { "scanf — Formatted input from stdin", "  int scanf(const char *format, ...);", "  Reads formatted data from stdin. Returns number of items read." },
+                ["fprintf"] = new[] { "fprintf — Formatted output to a file", "  int fprintf(FILE *stream, const char *format, ...);", "  Like printf, but writes to the given file stream." },
+                ["fscanf"] = new[] { "fscanf — Formatted input from a file", "  int fscanf(FILE *stream, const char *format, ...);", "  Like scanf, but reads from the given file stream." },
+                ["fopen"] = new[] { "fopen — Open a file", "  FILE *fopen(const char *path, const char *mode);", "  Modes: \"r\" read, \"w\" write, \"a\" append, \"rb\"/\"wb\" binary. Returns NULL on failure." },
+                ["fclose"] = new[] { "fclose — Close a file", "  int fclose(FILE *stream);", "  Closes file and flushes buffers. Returns 0 on success." },
+                ["fgets"] = new[] { "fgets — Read a line from a file", "  char *fgets(char *s, int n, FILE *stream);", "  Reads up to n-1 characters. Returns NULL on error/EOF." },
+                ["fputs"] = new[] { "fputs — Write a string to a file", "  int fputs(const char *s, FILE *stream);", "  Writes string s to stream (no null terminator)." },
+                ["malloc"] = new[] { "malloc — Allocate memory", "  void *malloc(size_t size);", "  Allocates size bytes (uninitialized). Returns NULL on failure. Free with free()." },
+                ["calloc"] = new[] { "calloc — Allocate zero-initialized memory", "  void *calloc(size_t n, size_t size);", "  Allocates n*size bytes, all initialized to zero." },
+                ["realloc"] = new[] { "realloc — Resize allocated memory", "  void *realloc(void *ptr, size_t size);", "  Resizes the block pointed to by ptr to size bytes." },
+                ["free"] = new[] { "free — Free allocated memory", "  void free(void *ptr);", "  Releases memory allocated by malloc/calloc/realloc." },
+                ["strlen"] = new[] { "strlen — String length", "  size_t strlen(const char *s);", "  Returns number of characters before the null terminator." },
+                ["strcpy"] = new[] { "strcpy — Copy string", "  char *strcpy(char *dest, const char *src);", "  Copies src to dest including null terminator. Returns dest." },
+                ["strcat"] = new[] { "strcat — Concatenate strings", "  char *strcat(char *dest, const char *src);", "  Appends src to dest. Returns dest." },
+                ["strcmp"] = new[] { "strcmp — Compare strings", "  int strcmp(const char *s1, const char *s2);", "  Returns 0 if equal, <0 if s1<s2, >0 if s1>s2." },
+                ["strchr"] = new[] { "strchr — Find character in string", "  char *strchr(const char *s, int c);", "  Returns pointer to first occurrence of c, or NULL." },
+                ["strstr"] = new[] { "strstr — Find substring", "  char *strstr(const char *haystack, const char *needle);", "  Returns pointer to first occurrence of needle, or NULL." },
+                ["memcpy"] = new[] { "memcpy — Copy memory", "  void *memcpy(void *dest, const void *src, size_t n);", "  Copies n bytes. Regions must not overlap." },
+                ["memset"] = new[] { "memset — Fill memory", "  void *memset(void *s, int c, size_t n);", "  Fills n bytes of s with byte value c." },
+                ["sqrt"] = new[] { "sqrt — Square root", "  double sqrt(double x);", "  Returns square root of x. Requires <math.h>." },
+                ["pow"] = new[] { "pow — Power", "  double pow(double base, double exp);", "  Returns base raised to exp. Requires <math.h>." },
+                ["sin"] = new[] { "sin — Sine", "  double sin(double x);", "  Returns sine of x (radians). Requires <math.h>." },
+                ["cos"] = new[] { "cos — Cosine", "  double cos(double x);", "  Returns cosine of x (radians). Requires <math.h>." },
+                ["tan"] = new[] { "tan — Tangent", "  double tan(double x);", "  Returns tangent of x (radians). Requires <math.h>." },
+                ["ceil"] = new[] { "ceil — Round up", "  double ceil(double x);", "  Returns smallest integer >= x. Requires <math.h>." },
+                ["floor"] = new[] { "floor — Round down", "  double floor(double x);", "  Returns largest integer <= x. Requires <math.h>." },
+                ["abs"] = new[] { "abs — Absolute value (int)", "  int abs(int n);", "  Returns absolute value of n. Requires <stdlib.h>." },
+                ["atoi"] = new[] { "atoi — String to integer", "  int atoi(const char *s);", "  Converts string to int. Non-numeric characters stop parsing." },
+                ["atof"] = new[] { "atof — String to double", "  double atof(const char *s);", "  Converts string to double." },
+                ["exit"] = new[] { "exit — Terminate program", "  void exit(int status);", "  Terminates program, flushing buffers. status 0 = success." },
+                ["isalpha"] = new[] { "isalpha — Test if alphabetic", "  int isalpha(int c);", "  Non-zero if c is A-Z or a-z. Requires <ctype.h>." },
+                ["isdigit"] = new[] { "isdigit — Test if digit", "  int isdigit(int c);", "  Non-zero if c is 0-9. Requires <ctype.h>." },
+                ["isspace"] = new[] { "isspace — Test if whitespace", "  int isspace(int c);", "  Non-zero if c is space/tab/newline/etc. Requires <ctype.h>." },
+                ["toupper"] = new[] { "toupper — Convert to uppercase", "  int toupper(int c);", "  Returns uppercase equivalent of c. Requires <ctype.h>." },
+                ["tolower"] = new[] { "tolower — Convert to lowercase", "  int tolower(int c);", "  Returns lowercase equivalent of c. Requires <ctype.h>." },
+                ["time"] = new[] { "time — Get current time", "  time_t time(time_t *t);", "  Returns current calendar time. Requires <time.h>." },
+                ["clock"] = new[] { "clock — Processor time used", "  clock_t clock(void);", "  Divide by CLOCKS_PER_SEC for elapsed seconds. Requires <time.h>." },
                 ["localtime"] = new[] { "localtime — Convert to local time", "  struct tm *localtime(const time_t *timep);", "  Converts time_t to broken-down local time struct. Requires <time.h>." },
-                ["strftime"]  = new[] { "strftime — Format time as string", "  size_t strftime(char *s, size_t max, const char *format, const struct tm *tm);", "  Formats time struct into string, e.g. \"%Y-%m-%d %H:%M:%S\"." },
+                ["strftime"] = new[] { "strftime — Format time as string", "  size_t strftime(char *s, size_t max, const char *format, const struct tm *tm);", "  Formats time struct into string, e.g. \"%Y-%m-%d %H:%M:%S\"." },
             };
 
-            ClearMessages();
-            AddMessage($"═══ Help: {topic} ═══");
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine($"═══ Help: {topic} ═══");
+            sb.AppendLine();
             bool found = false;
             foreach (var kvp in topics)
             {
                 if (kvp.Key.IndexOf(topic, StringComparison.OrdinalIgnoreCase) >= 0 ||
                     topic.IndexOf(kvp.Key, StringComparison.OrdinalIgnoreCase) >= 0)
                 {
-                    foreach (var line in kvp.Value) AddMessage(line);
-                    AddMessage("");
+                    foreach (var line in kvp.Value) sb.AppendLine(line);
+                    sb.AppendLine();
                     found = true;
                 }
             }
@@ -1290,13 +1502,67 @@ namespace C.Compiler
             {
                 if (kw.Equals(topic, StringComparison.OrdinalIgnoreCase))
                 {
-                    AddMessage($"{kw} — C keyword. See a C language reference for syntax details.");
-                    AddMessage("");
+                    sb.AppendLine($"{kw} — C keyword. See a C language reference for syntax details.");
+                    sb.AppendLine();
                     found = true;
                 }
             }
             if (!found)
-                AddMessage($"No help found for '{topic}'. Try: printf, malloc, strlen, fopen, sin, if, for, struct...");
+                sb.AppendLine($"No help found for '{topic}'. Try: printf, malloc, strlen, fopen, sin, if, for, struct...");
+
+            OpenHelpTab($"HELP-{topic.ToUpperInvariant()}.TXT", sb.ToString());
+        }
+
+        private void HelpThirdParty_Click(object sender, RoutedEventArgs e)
+        {
+            CloseAllMenus();
+            OpenHelpTab("THIRD-PARTY.TXT",
+                "═══════════════════════════════════════════════════════════════\r\n" +
+                "              THIRD-PARTY NOTICES\r\n" +
+                "═══════════════════════════════════════════════════════════════\r\n" +
+                "\r\n" +
+                " 1. TCC — Tiny C Compiler\r\n" +
+                "    Copyright (c) 2001-2004 Fabrice Bellard\r\n" +
+                "    License: GNU Lesser General Public License v2.1 (LGPL-2.1)\r\n" +
+                "    Source:  https://bellard.org/tcc/\r\n" +
+                "    Bundled in binary form. You may replace with a modified version.\r\n" +
+                "\r\n" +
+                " 2. LLamaSharp\r\n" +
+                "    Copyright (c) 2023 SciSharp LLC and contributors\r\n" +
+                "    License: MIT License\r\n" +
+                "    Source:  https://github.com/SciSharp/LLamaSharp\r\n" +
+                "\r\n" +
+                " 3. llama.cpp (via LLamaSharp)\r\n" +
+                "    Copyright (c) 2023 Georgi Gerganov and contributors\r\n" +
+                "    License: MIT License\r\n" +
+                "    Source:  https://github.com/ggerganov/llama.cpp\r\n" +
+                "\r\n" +
+                " 4. Phi-3 mini 4K Instruct (AI model — downloaded at runtime)\r\n" +
+                "    Copyright (c) Microsoft Corporation\r\n" +
+                "    License: MIT License\r\n" +
+                "    Source:  https://huggingface.co/microsoft/Phi-3-mini-4k-instruct-gguf\r\n" +
+                "    Not bundled — downloaded to your device on first use only.\r\n" +
+                "\r\n" +
+                " 5. Windows App SDK / WinUI 3\r\n" +
+                "    Copyright (c) Microsoft Corporation\r\n" +
+                "    License: MIT License\r\n" +
+                "    Source:  https://github.com/microsoft/WindowsAppSDK\r\n" +
+                "\r\n" +
+                " 6. CommunityToolkit.Mvvm\r\n" +
+                "    Copyright (c) .NET Foundation and Contributors\r\n" +
+                "    License: MIT License\r\n" +
+                "    Source:  https://github.com/CommunityToolkit/dotnet\r\n" +
+                "\r\n" +
+                "═══════════════════════════════════════════════════════════════\r\n" +
+                " TRADEMARKS\r\n" +
+                "═══════════════════════════════════════════════════════════════\r\n" +
+                "\r\n" +
+                " 'Turbo C' and 'Borland' are trademarks of Embarcadero Technologies.\r\n" +
+                " This app is NOT affiliated with Embarcadero, Idera, or Borland.\r\n" +
+                " 'Windows' is a trademark of Microsoft Corporation.\r\n" +
+                "\r\n" +
+                " Full license texts: THIRD-PARTY-NOTICES.txt (in app install folder)\r\n" +
+                "═══════════════════════════════════════════════════════════════\r\n");
         }
 
         // ═══════════════════════════════════════
@@ -1322,5 +1588,413 @@ namespace C.Compiler
                 }
             }
         }
+
+        private void MessageList_RightTapped(object sender, RightTappedRoutedEventArgs e)
+        {
+            // Select item under cursor for context menu
+            if (e.OriginalSource is FrameworkElement fe && fe.DataContext is string)
+            {
+                MessageList.SelectedItem = fe.DataContext;
+            }
+        }
+
+        private void ExplainErrorFlyout_Click(object sender, RoutedEventArgs e)
+        {
+#if BUILD_AI
+            ExplainError_Click(sender, e);
+#endif
+        }
+
+        // ═══════════════════════════════════════
+        // AI CHAT PANEL
+        // ═══════════════════════════════════════
+
+        private void Accel_ToggleAIPanel(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+        {
+            args.Handled = true;
+            ToggleAIPanel();
+        }
+
+        private void ToggleAIPanel()
+        {
+#if BUILD_AI
+            if (AIChatPanelControl.Visibility == Visibility.Collapsed)
+            {
+                AIChatPanelControl.Visibility = Visibility.Visible;
+                AIPanelColumn.Width = new GridLength(350);
+            }
+            else
+            {
+                AIChatPanelControl.Visibility = Visibility.Collapsed;
+                AIPanelColumn.Width = new GridLength(0);
+            }
+#endif
+        }
+
+        private void AIMenuBtn_Hover(object sender, PointerRoutedEventArgs e)
+        {
+            // Close any open popup menu when hovering over the AI button
+            if (_menuBarActive)
+                CloseAllMenus();
+        }
+
+        private async void AIAssistant_Click(object sender, RoutedEventArgs e)
+        {
+            CloseAllMenus();
+#if BUILD_AI
+            ToggleAIPanel();
+#else
+            var dialog = new ContentDialog
+            {
+                XamlRoot = Content.XamlRoot,
+                Title = "RetroC AI IDE",
+                Content = "The AI Assistant is available in RetroC AI IDE — the paid version.\r\n\r\nGet it from the Microsoft Store to unlock AI-powered code completion, explanation, and editing.",
+                PrimaryButtonText = "Get AI Version",
+                CloseButtonText = "Cancel",
+                DefaultButton = ContentDialogButton.Primary,
+            };
+            var result = await dialog.ShowAsync();
+            if (result == ContentDialogResult.Primary)
+            {
+                await Windows.System.Launcher.LaunchUriAsync(
+                    new Uri("ms-windows-store://pdp/?productid=9PB0Z9V0B0FN"));
+            }
+#endif
+        }
+
+#if BUILD_AI
+        private global::C.Compiler.AI.Services.LocalAIChatService? _aiChatService;
+        private global::C.Compiler.AI.Models.ChatConversation _aiConversation = new();
+
+        private void InitAIChatPanel()
+        {
+            AIChatPanelControl.CloseRequested += (_, _) =>
+            {
+                AIChatPanelControl.Visibility = Visibility.Collapsed;
+                AIPanelColumn.Width = new GridLength(0);
+            };
+
+            AIChatPanelControl.GetEditorContext = () =>
+            {
+                var editor = ActiveEditor;
+                var doc = editor.Document;
+                var ctx = new Controls.AIChatContext
+                {
+                    FileName = doc.FileName,
+                    FileContent = doc.Content,
+                    SelectedText = editor.GetSelectedText(),
+                    CursorLine = doc.CursorLine,
+                    CursorColumn = doc.CursorColumn,
+                };
+                foreach (var err in _currentErrors)
+                    ctx.CompilerErrors.Add(err.ToString());
+                return ctx;
+            };
+
+            AIChatPanelControl.MessageSubmitted += OnAIChatMessageSubmitted;
+
+            // Copy code → clipboard
+            AIChatPanelControl.CopyCodeRequested += code =>
+            {
+                var dp = new Windows.ApplicationModel.DataTransfer.DataPackage();
+                dp.SetText(code);
+                Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dp);
+                AIChatPanelControl.SetStatus("Copied to clipboard.");
+                DispatcherQueue.TryEnqueue(async () =>
+                {
+                    await Task.Delay(1500);
+                    AIChatPanelControl.SetStatus(string.Empty);
+                });
+            };
+
+            // Insert code → active editor at cursor
+            AIChatPanelControl.InsertCodeRequested += code =>
+            {
+                ActiveEditor.InsertText(code);
+                ActiveEditor.FocusEditor();
+            };
+
+            // Agent mode: apply an edit (find-replace in editor)
+            AIChatPanelControl.ApplyEditRequested += (fileName, original, replacement, editIndex) =>
+            {
+                ApplyAgentEdit(fileName, original, replacement, editIndex);
+            };
+
+            // Agent mode: reject an edit (just log)
+            AIChatPanelControl.RejectEditRequested += editIndex =>
+            {
+                AIChatPanelControl.SetStatus($"Edit #{editIndex + 1} rejected.");
+                DispatcherQueue.TryEnqueue(async () =>
+                {
+                    await Task.Delay(1500);
+                    AIChatPanelControl.SetStatus(string.Empty);
+                });
+            };
+
+            // Show the AI Settings menu item in Options menu
+            OptionsAIBtn.Visibility = Visibility.Visible;
+
+            // Show the AI Assistant guide in Help menu
+            HelpAIBtn.Visibility = Visibility.Visible;
+        }
+
+        private void ApplyAISettings()
+        {
+            var s = _settingsService.Settings.AI;
+            if (_aiChatService != null)
+            {
+                _aiChatService.Configure(
+                    customModelPath: s.CustomModelPath,
+                    gpuLayerCount: s.GpuLayerCount,
+                    contextSize: s.ContextSize,
+                    maxTokens: s.MaxTokens,
+                    temperature: s.Temperature);
+            }
+        }
+
+        /// <summary>
+        /// Opens the AI panel and sends a pre-filled message (e.g. "Explain this error: ...").
+        /// </summary>
+        private void SendToAIPanel(string message)
+        {
+            // Make sure panel is visible
+            if (AIChatPanelControl.Visibility == Visibility.Collapsed)
+            {
+                AIChatPanelControl.Visibility = Visibility.Visible;
+                AIPanelColumn.Width = new GridLength(350);
+            }
+
+            AIChatPanelControl.SendPrefilled(message);
+        }
+
+        /// <summary>
+        /// Ask AI to explain a compiler error. Called from message panel context menu.
+        /// </summary>
+        private void ExplainError_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentErrors.Count == 0) return;
+
+            var errorIdx = _errorIndex;
+            if (errorIdx < 0 || errorIdx >= _currentErrors.Count)
+                errorIdx = 0;
+
+            var error = _currentErrors[errorIdx];
+            var code = ActiveEditor.GetText();
+
+            // Extract ~5 lines around the error for context
+            var lines = code.Split('\n');
+            int start = Math.Max(0, error.Line - 3);
+            int end = Math.Min(lines.Length, error.Line + 2);
+            var snippet = string.Join("\n", lines[start..end]);
+
+            SendToAIPanel(
+                $"Explain this compiler error and suggest a fix:\n\n" +
+                $"Error: {error}\n\n" +
+                $"Code around line {error.Line}:\n```c\n{snippet}\n```");
+        }
+
+        /// <summary>
+        /// Ask AI about the currently selected code. Called from editor context menu.
+        /// </summary>
+        private void AskAIAboutSelection_Click(object sender, RoutedEventArgs e)
+        {
+            var selection = ActiveEditor.GetSelectedText();
+            if (string.IsNullOrWhiteSpace(selection))
+            {
+                SendToAIPanel("Explain this file and what it does.");
+            }
+            else
+            {
+                SendToAIPanel($"Explain this code:\n```c\n{selection}\n```");
+            }
+        }
+
+        private void OnEditorAskAIRequested(object? sender, string selectedText)
+        {
+            if (string.IsNullOrWhiteSpace(selectedText))
+            {
+                SendToAIPanel("Explain this file and what it does.");
+            }
+            else
+            {
+                SendToAIPanel($"Explain this code:\n```c\n{selectedText}\n```");
+            }
+        }
+
+        /// <summary>
+        /// Apply an Agent mode edit: find the original text in the active editor and replace it.
+        /// Then auto-compile to check for errors.
+        /// </summary>
+        private async void ApplyAgentEdit(string fileName, string original, string replacement, int editIndex)
+        {
+            var editor = ActiveEditor;
+            var currentText = editor.GetText();
+
+            if (string.IsNullOrEmpty(original))
+            {
+                // "create" action — set entire editor content
+                editor.SetText(replacement);
+                AIChatPanelControl.SetStatus($"Edit #{editIndex + 1} applied — new file content set.");
+            }
+            else
+            {
+                var result = global::C.Compiler.AI.Services.AgentEditParser.ApplyEdit(currentText, new global::C.Compiler.AI.Services.AgentEdit
+                {
+                    Action = "edit",
+                    FileName = fileName,
+                    Original = original,
+                    Replacement = replacement,
+                });
+
+                if (result == null)
+                {
+                    AIChatPanelControl.SetStatus($"Edit #{editIndex + 1} failed — could not find original text.");
+                    AIChatPanelControl.AddAssistantMessage(
+                        $"⚠ **Could not apply edit #{editIndex + 1}** — the original code block was not found in the editor.\n" +
+                        "The file may have changed since the suggestion was made. Try requesting the edit again.");
+                    return;
+                }
+
+                editor.SetText(result);
+                AIChatPanelControl.SetStatus($"Edit #{editIndex + 1} applied.");
+            }
+
+            // Auto-compile to check for errors
+            AIChatPanelControl.SetStatus("Compiling...");
+            await CompileCurrentFileAsync(compileOnly: true);
+
+            if (_currentErrors.Count > 0)
+            {
+                AIChatPanelControl.SetStatus($"Edit applied — {_currentErrors.Count} error(s) found.");
+                AIChatPanelControl.AddAssistantMessage(
+                    $"⚠ **Compilation found {_currentErrors.Count} error(s)** after applying edit #{editIndex + 1}:\n\n" +
+                    string.Join("\n", _currentErrors.ConvertAll(e => $"- `{e}`")) +
+                    "\n\nWould you like me to fix these errors?");
+            }
+            else
+            {
+                AIChatPanelControl.SetStatus("Edit applied — compiled successfully!");
+                DispatcherQueue.TryEnqueue(async () =>
+                {
+                    await Task.Delay(2000);
+                    AIChatPanelControl.SetStatus(string.Empty);
+                });
+            }
+        }
+
+        private async Task OnAIChatMessageSubmitted(string userMessage, bool isAgentMode, Controls.AIChatContext? context)
+        {
+            try
+            {
+                // Ensure model is loaded
+                if (_aiChatService == null)
+                {
+                    _aiChatService = new global::C.Compiler.AI.Services.LocalAIChatService();
+                    ApplyAISettings();
+                }
+
+                if (!_aiChatService.IsModelDownloaded)
+                {
+                    AIChatPanelControl.AddAssistantMessage(
+                        "⚙ **Downloading AI model** (Phi-3 mini ~2.3 GB)...\n\nThis is a one-time download. Please wait.");
+                    AIChatPanelControl.SetStatus("Downloading model: 0%");
+
+                    var downloadProgress = new Progress<(string status, double percent)>(p =>
+                    {
+                        DispatcherQueue.TryEnqueue(() =>
+                        {
+                            AIChatPanelControl.SetStatus($"Downloading: {p.percent:F0}% — {p.status}");
+                        });
+                    });
+
+                    try
+                    {
+                        var ctx = AIChatPanelControl.GetCancellationToken();
+                        await _aiChatService.ModelManager.DownloadModelAsync(downloadProgress, ctx);
+                        AIChatPanelControl.SetStatus("Download complete!");
+                        AIChatPanelControl.AddAssistantMessage("✓ **Model downloaded successfully.** Processing your message...");
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        AIChatPanelControl.SetStatus("Download cancelled.");
+                        AIChatPanelControl.AddAssistantMessage("Download cancelled. Send another message to retry.");
+                        return;
+                    }
+                    catch (Exception dlEx)
+                    {
+                        AIChatPanelControl.SetStatus(string.Empty);
+                        AIChatPanelControl.AddAssistantMessage(
+                            $"⚠ **Download failed:** `{dlEx.Message}`\n\n" +
+                            "You can also manually place a `.gguf` model file in:\n" +
+                            $"`{_aiChatService.ModelManager.ModelPath}`\n\n" +
+                            "Or set a custom model path in **Options → AI Settings**.");
+                        return;
+                    }
+                }
+
+                if (!_aiChatService.IsModelLoaded)
+                {
+                    AIChatPanelControl.SetStatus("Loading AI model...");
+                    await Task.Run(() => _aiChatService.LoadModelAsync(new Progress<string>(s =>
+                        DispatcherQueue.TryEnqueue(() => AIChatPanelControl.SetStatus(s)))));
+                }
+
+                AIChatPanelControl.SetStatus("Thinking...");
+
+                // Set mode
+                _aiConversation.Mode = isAgentMode
+                    ? global::C.Compiler.AI.Models.AIChatMode.Agent
+                    : global::C.Compiler.AI.Models.AIChatMode.Ask;
+
+                // Add user message to conversation
+                _aiConversation.AddUserMessage(userMessage);
+
+                // Build editor context
+                global::C.Compiler.AI.Models.EditorContext? editorCtx = null;
+                if (context != null)
+                {
+                    editorCtx = new global::C.Compiler.AI.Models.EditorContext
+                    {
+                        FileName = context.FileName,
+                        FileContent = context.FileContent,
+                        SelectedText = context.SelectedText,
+                        CursorLine = context.CursorLine,
+                        CursorColumn = context.CursorColumn,
+                        CompilerErrors = context.CompilerErrors,
+                    };
+                }
+
+                // Stream response
+                var ct = AIChatPanelControl.GetCancellationToken();
+                var streamHandle = AIChatPanelControl.BeginAssistantStream();
+                var fullResponse = new System.Text.StringBuilder();
+
+                await foreach (var token in _aiChatService.SendMessageAsync(_aiConversation, editorCtx, ct))
+                {
+                    fullResponse.Append(token);
+                    DispatcherQueue.TryEnqueue(() =>
+                        AIChatPanelControl.AppendToStream(streamHandle, token));
+                }
+
+                // Finalize: replace plain streamed text with rendered markdown
+                var finalText = fullResponse.ToString();
+                DispatcherQueue.TryEnqueue(() =>
+                    AIChatPanelControl.FinalizeStream(streamHandle, finalText));
+
+                // Store in conversation history
+                _aiConversation.AddAssistantMessage(finalText);
+                AIChatPanelControl.SetStatus(string.Empty);
+            }
+            catch (OperationCanceledException)
+            {
+                AIChatPanelControl.SetStatus("Cancelled.");
+            }
+            catch (Exception ex)
+            {
+                AIChatPanelControl.SetStatus(string.Empty);
+                AIChatPanelControl.AddAssistantMessage($"⚠ Error: {ex.Message}");
+            }
+        }
+#endif
     }
 }

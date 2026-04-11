@@ -1,0 +1,169 @@
+END USER LICENSE AGREEMENT
+RetroC AI IDE
+Last Updated: April 11, 2026
+=============================================================================
+
+PLEASE READ THIS AGREEMENT CAREFULLY BEFORE INSTALLING OR USING THIS SOFTWARE.
+BY INSTALLING, COPYING, OR OTHERWISE USING RETRO C AI IDE, YOU AGREE TO BE
+BOUND BY THE TERMS OF THIS AGREEMENT. IF YOU DO NOT AGREE, DO NOT INSTALL
+OR USE THIS SOFTWARE.
+
+=============================================================================
+1. GRANT OF LICENSE
+=============================================================================
+
+Subject to your compliance with this Agreement and payment of the applicable
+purchase price, the developer grants you a personal, non-exclusive,
+non-transferable, limited license to:
+
+  (a) Install and use one (1) copy of RetroC AI IDE on devices you own or
+      control that are registered to your Microsoft Account via the
+      Microsoft Store.
+
+  (b) Use the software for personal, educational, or commercial purposes,
+      including writing, compiling, and distributing C programs you create
+      using the software.
+
+This license does NOT include the right to:
+  - Redistribute, resell, sublicense, or transfer the software itself.
+  - Reverse-engineer, decompile, or disassemble the software, except as
+    expressly permitted by applicable law.
+  - Remove or alter any proprietary notices, labels, or marks.
+
+=============================================================================
+2. THIRD-PARTY COMPONENTS
+=============================================================================
+
+This software includes third-party open-source components. Your rights to
+those components are governed by their respective licenses, which are
+reproduced in THIRD-PARTY-NOTICES.txt and displayed in the app under
+Help > Third-Party Notices.
+
+Key components:
+  - TCC (Tiny C Compiler) — LGPL-2.1. Source: https://bellard.org/tcc/
+  - LLamaSharp — MIT License
+  - llama.cpp — MIT License
+  - Phi-3 mini model — MIT License (Microsoft). Downloaded at runtime.
+  - Windows App SDK — MIT License (Microsoft)
+
+Pursuant to LGPL-2.1, you have the right to obtain TCC source code
+and replace the bundled TCC binary with a modified version.
+
+=============================================================================
+3. AI MODEL — IMPORTANT NOTICE
+=============================================================================
+
+The AI feature uses a language model (Phi-3 mini or a model you supply)
+that runs ENTIRELY on your local device. No user data, source code, or
+prompts are transmitted to any server operated by the developer.
+
+  (a) The developer does not warrant the accuracy, completeness, fitness,
+      or legal compliance of any AI-generated output.
+
+  (b) You are solely responsible for reviewing, testing, and verifying
+      any code or suggestions produced by the AI feature before use.
+
+  (c) The AI model is downloaded from a third-party server (HuggingFace)
+      at your request. The developer is not responsible for the content
+      of third-party model repositories.
+
+  (d) You may substitute your own GGUF-format model via Options > AI Settings.
+      Use of third-party models is subject to their respective license terms.
+
+=============================================================================
+4. INTELLECTUAL PROPERTY
+=============================================================================
+
+The software and all copies thereof are proprietary to the developer and
+title thereto remains in the developer. All rights in the software not
+specifically granted in this Agreement are reserved to the developer.
+
+"Turbo C" and "Borland" are trademarks of Embarcadero Technologies, Inc.
+This application is NOT affiliated with or endorsed by Embarcadero, Idera,
+or the original Borland International. The retro aesthetic is an independent
+re-implementation.
+
+"Windows" is a trademark of Microsoft Corporation. This application is an
+independent product not made or endorsed by Microsoft, except as noted.
+
+=============================================================================
+5. DISCLAIMER OF WARRANTIES
+=============================================================================
+
+THE SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+
+THE DEVELOPER DOES NOT WARRANT THAT:
+  - THE SOFTWARE WILL MEET YOUR REQUIREMENTS.
+  - THE SOFTWARE WILL BE UNINTERRUPTED OR ERROR-FREE.
+  - ANY AI-GENERATED CODE OR SUGGESTIONS WILL BE CORRECT, SECURE, OR LEGAL.
+  - THE SOFTWARE WILL BE COMPATIBLE WITH ALL HARDWARE CONFIGURATIONS.
+
+=============================================================================
+6. LIMITATION OF LIABILITY
+=============================================================================
+
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL THE
+DEVELOPER BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, LOSS OF DATA, LOSS
+OF PROFITS, BUSINESS INTERRUPTION, OR LOSS OF BUSINESS INFORMATION) ARISING
+OUT OF OR IN CONNECTION WITH THE USE OR INABILITY TO USE THIS SOFTWARE,
+EVEN IF THE DEVELOPER HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+THE DEVELOPER'S TOTAL AGGREGATE LIABILITY SHALL NOT EXCEED THE AMOUNT YOU
+PAID FOR THIS SOFTWARE IN THE TWELVE (12) MONTHS PRECEDING THE CLAIM.
+
+=============================================================================
+7. PRIVACY
+=============================================================================
+
+This software does not collect, transmit, or store personal data on any
+server operated by the developer. See PRIVACY.md for the full privacy policy.
+
+All AI inference runs locally on your device. Your source code and prompts
+never leave your machine.
+
+The software connects to the internet only for:
+  (a) Downloading the AI model at your explicit request (one-time).
+  (b) Downloading TCC compiler at your explicit request (one-time).
+
+=============================================================================
+8. UPDATES AND MODIFICATIONS
+=============================================================================
+
+Updates may be delivered through the Microsoft Store. This Agreement applies
+to all updates and supplements to the original software, unless such update
+is accompanied by a separate license, in which case that license governs.
+
+=============================================================================
+9. TERMINATION
+=============================================================================
+
+This Agreement is effective until terminated. Your rights under this Agreement
+will terminate automatically without notice if you fail to comply with any
+of its terms. Upon termination, you must cease all use of the software and
+destroy all copies.
+
+=============================================================================
+10. GOVERNING LAW
+=============================================================================
+
+This Agreement shall be governed by and construed in accordance with the laws
+of the jurisdiction in which the developer is located, without regard to
+conflict of law principles.
+
+=============================================================================
+11. ENTIRE AGREEMENT
+=============================================================================
+
+This Agreement, together with THIRD-PARTY-NOTICES.txt and PRIVACY.md,
+constitutes the entire agreement between you and the developer with respect
+to the software and supersedes all prior understandings or agreements.
+
+=============================================================================
+
+For support or questions, contact the developer via the Microsoft Store
+support link or the project's GitHub repository.
+
+© 2026 RetroC AI IDE. All rights reserved.

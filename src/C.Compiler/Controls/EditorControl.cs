@@ -31,6 +31,7 @@ namespace C.Compiler.Controls
         public event EventHandler? CloseRequested;
         public event EventHandler? ContentChanged;
         public event EventHandler<(int Line, int Column)>? CursorMoved;
+        public event EventHandler<string>? AskAIRequested;
 
         public EditorDocument Document
         {
@@ -97,6 +98,12 @@ namespace C.Compiler.Controls
             return text.TrimEnd('\r', '\n');
         }
 
+        public string GetSelectedText()
+        {
+            CodeEditor.Document.Selection.GetText(TextGetOptions.None, out string text);
+            return text ?? string.Empty;
+        }
+
         public void SetText(string text)
         {
             _isUpdating = true;
@@ -105,6 +112,14 @@ namespace C.Compiler.Controls
             ApplySyntaxHighlighting();
             _isUpdating = false;
         }
+
+        public void SetReadOnly(bool readOnly)
+        {
+            IsReadOnly = readOnly;
+            CodeEditor.IsReadOnly = readOnly;
+        }
+
+        public bool IsReadOnly { get; private set; }
 
         public void GoToLine(int lineNumber)
         {
@@ -400,6 +415,27 @@ namespace C.Compiler.Controls
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
             CloseRequested?.Invoke(this, EventArgs.Empty);
+        }
+
+        public void ShowAskAIContextMenu(bool show)
+        {
+            AskAIMenuItem.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+            AskAISeparator.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private void AskAI_Click(object sender, RoutedEventArgs e)
+        {
+            string selected = GetSelectedText();
+            AskAIRequested?.Invoke(this, selected);
+        }
+
+        private void ContextCut_Click(object sender, RoutedEventArgs e) => Cut();
+        private void ContextCopy_Click(object sender, RoutedEventArgs e) => Copy();
+        private void ContextPaste_Click(object sender, RoutedEventArgs e) => Paste();
+        private void ContextSelectAll_Click(object sender, RoutedEventArgs e)
+        {
+            CodeEditor.Document.GetText(TextGetOptions.None, out string text);
+            CodeEditor.Document.Selection.SetRange(0, text.Length);
         }
     }
 }

@@ -12,7 +12,12 @@
     <WinUISDKReferences>false</WinUISDKReferences>
     <EnableMsixTooling>true</EnableMsixTooling>
     <Nullable>enable</Nullable>
+    <DefineConstants Condition="'$(BuildAI)'=='true'">$(DefineConstants);BUILD_AI</DefineConstants>
+    <!-- LLamaSharp ships multiple AVX variant native DLLs with the same name -->
+    <ErrorOnDuplicatePublishOutputFiles Condition="'$(BuildAI)'=='true'">false</ErrorOnDuplicatePublishOutputFiles>
   </PropertyGroup>
+
+
 
   <ItemGroup>
     <Content Include="Assets\SplashScreen.scale-200.png" />
@@ -41,6 +46,11 @@
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260317003" />
   </ItemGroup>
 
+  <!-- AI features (LLamaSharp) — only included when BuildAI=true -->
+  <ItemGroup Condition="'$(BuildAI)'=='true'">
+    <ProjectReference Include="..\C.Compiler.AI\C.Compiler.AI.csproj" />
+  </ItemGroup>
+
   <!--
     Defining the "HasPackageAndPublishMenuAddedByProject" property here allows the Solution
     Explorer "Package and Publish" context menu entry to be enabled for this project even if
@@ -59,7 +69,7 @@
     <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
     <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
     <AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
-    <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
+    <AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
     <GenerateTestArtifacts>True</GenerateTestArtifacts>
     <AppxBundle>Never</AppxBundle>
     <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>

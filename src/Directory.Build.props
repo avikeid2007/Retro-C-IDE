@@ -1,0 +1,12 @@
+<Project>
+  <!--
+    Set BuildAI to true to enable AI features (LLamaSharp).
+    Set to false (or remove) for the free/open-source build.
+    
+    Visual Studio: just change "true" to "false" below and rebuild.
+    CLI:           dotnet build /p:BuildAI=true
+  -->
+  <PropertyGroup>
+    <BuildAI>true</BuildAI>
+  </PropertyGroup>
+</Project>

@@ -361,9 +361,9 @@
     <Language Code="zu-za" InMinimumRequirementSet="true" />
   </SupportedLocales>
   <ProductReservedInfo>
-    <MainPackageIdentityName>34488AvnishKumar.32360E348CAC</MainPackageIdentityName>
+    <MainPackageIdentityName>34488AvnishKumar.RetroCAIIDE</MainPackageIdentityName>
     <ReservedNames>
-      <ReservedName>Retro C IDE</ReservedName>
+      <ReservedName>Retro C AI IDE</ReservedName>
     </ReservedNames>
   </ProductReservedInfo>
   <AccountPackageIdentityNames>
@@ -375,7 +375,8 @@
     <MainPackageIdentityName>34488AvnishKumar.KaiROSAI</MainPackageIdentityName>
     <MainPackageIdentityName>34488AvnishKumar.LabourPay</MainPackageIdentityName>
     <MainPackageIdentityName>34488AvnishKumar.PingLegacy</MainPackageIdentityName>
+    <MainPackageIdentityName>34488AvnishKumar.32360E348CAC</MainPackageIdentityName>
     <MainPackageIdentityName>34488AvnishKumar.WinDevUtility</MainPackageIdentityName>
   </AccountPackageIdentityNames>
-  <PackageInfoList LandingUrl="https://devcenterapi.dce.mp.microsoft.com/dashboard/Application?appId=9N6D5SDRJ3NN" />
+  <PackageInfoList LandingUrl="https://devcenterapi.dce.mp.microsoft.com/dashboard/Application?appId=9PB0Z9V0B0FN" />
 </StoreAssociation>

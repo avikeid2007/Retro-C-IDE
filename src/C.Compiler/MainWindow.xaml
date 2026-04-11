@@ -12,7 +12,7 @@
 
     <Grid x:Name="RootGrid" Background="#FF0000AA">
         <Grid.RowDefinitions>
-            <RowDefinition Height="28" />
+            <RowDefinition Height="32" />
             <RowDefinition Height="*" />
             <RowDefinition Height="24" />
         </Grid.RowDefinitions>
@@ -125,125 +125,162 @@
                     Tag="10">
                     <TextBlock FontFamily="Consolas" FontSize="20"><Run Text=" " /><Run Foreground="#FFFF0000" Text="H" /><Run Foreground="#FF000000" Text="elp " /></TextBlock>
                 </Button>
+                <Button
+                    x:Name="AIMenuBtn"
+                    Click="AIAssistant_Click"
+                    PointerEntered="AIMenuBtn_Hover"
+                    Style="{StaticResource DosMenuTitleStyle}">
+                    <TextBlock FontFamily="Consolas" FontSize="20"><Run Text=" " /><Run Foreground="#FF0000AA" Text="★" /><Run Foreground="#FF000000" Text=" AI " /></TextBlock>
+                </Button>
             </StackPanel>
         </Grid>
 
         <!--  ═══════════════════════════════════════════════  -->
-        <!--  ROW 1: EDITOR + WATCH PANEL (vertical split)  -->
+        <!--  ROW 1: EDITOR + MESSAGE + AI PANEL  -->
         <!--  ═══════════════════════════════════════════════  -->
         <Grid Grid.Row="1">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <!--  AI panel column — 0 width when hidden  -->
+                <ColumnDefinition x:Name="AIPanelColumn" Width="0" />
+            </Grid.ColumnDefinitions>
 
-            <!--  EDITOR TABS — multiple editor windows  -->
-            <TabView
-                x:Name="EditorTabs"
-                Grid.Row="0"
-                VerticalAlignment="Stretch"
-                AddTabButtonClick="EditorTabs_AddTabButtonClick"
-                Background="#FF0000AA"
-                IsAddTabButtonVisible="True"
-                SelectionChanged="EditorTabs_SelectionChanged"
-                TabCloseRequested="EditorTabs_TabCloseRequested">
-                <TabView.Resources>
-                    <SolidColorBrush x:Key="TabViewBackground" Color="#FF0000AA" />
-                    <SolidColorBrush x:Key="TabViewItemHeaderBackground" Color="#FF000088" />
-                    <SolidColorBrush x:Key="TabViewItemHeaderBackgroundSelected" Color="#FF0000AA" />
-                    <SolidColorBrush x:Key="TabViewItemHeaderForeground" Color="#FF00AAAA" />
-                    <SolidColorBrush x:Key="TabViewItemHeaderForegroundSelected" Color="#FFFFFFFF" />
-                </TabView.Resources>
-            </TabView>
-
-            <!--  WATCH/MESSAGE PANEL — TC3 box-drawing border  -->
-            <Grid
-                x:Name="MessagePanel"
-                Grid.Row="1"
-                Height="140">
+            <!--  LEFT: Editor + Message panel (existing)  -->
+            <Grid Grid.Column="0">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <!--  Top border with title  -->
-                <Grid Grid.Row="0" Height="18">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock
-                        Grid.Column="0"
-                        VerticalAlignment="Center"
-                        FontFamily="Consolas"
-                        FontSize="13"
-                        Foreground="#FF00AAAA">
-                        <Run Text="[" /><Run Foreground="#FF00AA00" Text=" ■ " /><Run Text="]" />
-                    </TextBlock>
+
+                <!--  EDITOR TABS — multiple editor windows  -->
+                <TabView
+                    x:Name="EditorTabs"
+                    Grid.Row="0"
+                    VerticalAlignment="Stretch"
+                    AddTabButtonClick="EditorTabs_AddTabButtonClick"
+                    Background="#FF0000AA"
+                    IsAddTabButtonVisible="True"
+                    SelectionChanged="EditorTabs_SelectionChanged"
+                    TabCloseRequested="EditorTabs_TabCloseRequested">
+                    <TabView.Resources>
+                        <SolidColorBrush x:Key="TabViewBackground" Color="#FF0000AA" />
+                        <SolidColorBrush x:Key="TabViewItemHeaderBackground" Color="#FF000088" />
+                        <SolidColorBrush x:Key="TabViewItemHeaderBackgroundSelected" Color="#FF0000AA" />
+                        <SolidColorBrush x:Key="TabViewItemHeaderForeground" Color="#FF00AAAA" />
+                        <SolidColorBrush x:Key="TabViewItemHeaderForegroundSelected" Color="#FFFFFFFF" />
+                    </TabView.Resources>
+                </TabView>
+
+                <!--  WATCH/MESSAGE PANEL — TC3 box-drawing border  -->
+                <Grid
+                    x:Name="MessagePanel"
+                    Grid.Row="1"
+                    Height="140">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <!--  Top border with title  -->
+                    <Grid Grid.Row="0" Height="18">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
+                            FontFamily="Consolas"
+                            FontSize="13"
+                            Foreground="#FF00AAAA">
+                            <Run Text="[" /><Run Foreground="#FF00AA00" Text=" ■ " /><Run Text="]" />
+                        </TextBlock>
+                        <Border
+                            Grid.Column="1"
+                            Height="2"
+                            VerticalAlignment="Center"
+                            Background="#FF00AAAA" />
+                        <TextBlock
+                            Grid.Column="2"
+                            Margin="6,0"
+                            VerticalAlignment="Center"
+                            FontFamily="Consolas"
+                            FontSize="13"
+                            FontWeight="Bold"
+                            Foreground="#FFFFFFFF"
+                            Text="Message" />
+                        <Border
+                            Grid.Column="3"
+                            Height="2"
+                            VerticalAlignment="Center"
+                            Background="#FF00AAAA" />
+                    </Grid>
+                    <!--  Message content  -->
+                    <ScrollViewer
+                        Grid.Row="1"
+                        Padding="1"
+                        Background="#FF00AAAA"
+                        HorizontalScrollBarVisibility="Auto"
+                        VerticalScrollBarVisibility="Auto">
+                        <ListView
+                            x:Name="MessageList"
+                            Padding="4,2"
+                            Background="#FF00AAAA"
+                            IsItemClickEnabled="True"
+                            ItemClick="MessageList_ItemClick"
+                            RightTapped="MessageList_RightTapped"
+                            SelectionMode="Single">
+                            <ListView.ContextFlyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem
+                                        x:Name="ExplainErrorMenuItem"
+                                        Click="ExplainErrorFlyout_Click"
+                                        Text="Explain Error with AI">
+                                        <MenuFlyoutItem.Icon>
+                                            <FontIcon Glyph="&#xE946;" />
+                                        </MenuFlyoutItem.Icon>
+                                    </MenuFlyoutItem>
+                                </MenuFlyout>
+                            </ListView.ContextFlyout>
+                            <ListView.ItemContainerStyle>
+                                <Style TargetType="ListViewItem">
+                                    <Setter Property="MinHeight" Value="0" />
+                                    <Setter Property="Padding" Value="0" />
+                                    <Setter Property="Margin" Value="0" />
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                </Style>
+                            </ListView.ItemContainerStyle>
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock
+                                        Padding="0,0"
+                                        FontFamily="Consolas"
+                                        FontSize="13"
+                                        Foreground="#FF000000"
+                                        Text="{Binding}"
+                                        TextWrapping="NoWrap" />
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </ScrollViewer>
+                    <!--  Bottom border  -->
                     <Border
-                        Grid.Column="1"
-                        Height="2"
-                        VerticalAlignment="Center"
-                        Background="#FF00AAAA" />
-                    <TextBlock
-                        Grid.Column="2"
-                        Margin="6,0"
-                        VerticalAlignment="Center"
-                        FontFamily="Consolas"
-                        FontSize="13"
-                        FontWeight="Bold"
-                        Foreground="#FFFFFFFF"
-                        Text="Message" />
-                    <Border
-                        Grid.Column="3"
+                        Grid.Row="2"
                         Height="2"
                         VerticalAlignment="Center"
                         Background="#FF00AAAA" />
                 </Grid>
-                <!--  Message content  -->
-                <ScrollViewer
-                    Grid.Row="1"
-                    Padding="1"
-                    Background="#FF00AAAA"
-                    HorizontalScrollBarVisibility="Auto"
-                    VerticalScrollBarVisibility="Auto">
-                    <ListView
-                        x:Name="MessageList"
-                        Padding="4,2"
-                        Background="#FF00AAAA"
-                        IsItemClickEnabled="True"
-                        ItemClick="MessageList_ItemClick"
-                        SelectionMode="Single">
-                        <ListView.ItemContainerStyle>
-                            <Style TargetType="ListViewItem">
-                                <Setter Property="MinHeight" Value="0" />
-                                <Setter Property="Padding" Value="0" />
-                                <Setter Property="Margin" Value="0" />
-                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                            </Style>
-                        </ListView.ItemContainerStyle>
-                        <ListView.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock
-                                    Padding="0,0"
-                                    FontFamily="Consolas"
-                                    FontSize="13"
-                                    Foreground="#FF000000"
-                                    Text="{Binding}"
-                                    TextWrapping="NoWrap" />
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
-                </ScrollViewer>
-                <!--  Bottom border  -->
-                <Border
-                    Grid.Row="2"
-                    Height="2"
-                    VerticalAlignment="Center"
-                    Background="#FF00AAAA" />
             </Grid>
+            <!--  END LEFT (editor + message)  -->
+
+            <!--  RIGHT: AI Chat Panel (hidden by default, toggled via Ctrl+I or menu)  -->
+            <controls:AIChatPanel
+                x:Name="AIChatPanelControl"
+                Grid.Column="1"
+                MinWidth="280"
+                Visibility="Collapsed" />
         </Grid>
 
         <!--  ═══════════════════════════════════════════════  -->
@@ -727,6 +764,13 @@
                         <Button Click="OptionsEnvironment_Click" Style="{StaticResource DosMenuItemStyle}">
                             <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="E" /><Run Text="nvironment             " /></TextBlock>
                         </Button>
+                        <Button
+                            x:Name="OptionsAIBtn"
+                            Click="OptionsAI_Click"
+                            Style="{StaticResource DosMenuItemStyle}"
+                            Visibility="Collapsed">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" A" /><Run Foreground="#FFFF0000" Text="I" /><Run Text=" Settings...           " /></TextBlock>
+                        </Button>
                         <Border
                             Height="1"
                             Margin="1,0"
@@ -855,6 +899,20 @@
                             Background="#FF555555" />
                         <Button Click="HelpOnHelp_Click" Style="{StaticResource DosMenuItemStyle}">
                             <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="H" /><Run Text="elp on help            " /></TextBlock>
+                        </Button>
+                        <Button
+                            x:Name="HelpAIBtn"
+                            Click="HelpAI_Click"
+                            Style="{StaticResource DosMenuItemStyle}"
+                            Visibility="Collapsed">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" A" /><Run Foreground="#FFFF0000" Text="I" /><Run Text=" Assistant guide        " /></TextBlock>
+                        </Button>
+                        <Border
+                            Height="1"
+                            Margin="1,0"
+                            Background="#FF555555" />
+                        <Button Click="HelpThirdParty_Click" Style="{StaticResource DosMenuItemStyle}">
+                            <TextBlock FontFamily="Consolas" FontSize="13"><Run Text=" " /><Run Foreground="#FFFF0000" Text="T" /><Run Text="hird-Party Notices     " /></TextBlock>
                         </Button>
                         <Border
                             Height="1"
@@ -1840,6 +1898,10 @@
                 Key="Number9"
                 Invoked="Accel_SwitchWindow"
                 Modifiers="Menu" />
+            <KeyboardAccelerator
+                Key="I"
+                Invoked="Accel_ToggleAIPanel"
+                Modifiers="Control" />
         </Grid.KeyboardAccelerators>
 
     </Grid>

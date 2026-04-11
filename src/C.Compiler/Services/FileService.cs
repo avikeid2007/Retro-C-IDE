@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 using C.Compiler.Models;
@@ -71,8 +72,9 @@ namespace C.Compiler.Services
                 document.IsDirty = false;
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                Debug.WriteLine($"[FileService] SaveAsync failed for '{document.FilePath}': {ex.Message}");
                 return false;
             }
         }
@@ -99,8 +101,9 @@ namespace C.Compiler.Services
                 document.IsDirty = false;
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                Debug.WriteLine($"[FileService] SaveAsAsync failed for '{document.FileName}': {ex.Message}");
                 return false;
             }
         }
@@ -119,8 +122,9 @@ namespace C.Compiler.Services
                     IsDirty = false
                 };
             }
-            catch
+            catch (Exception ex)
             {
+                Debug.WriteLine($"[FileService] OpenFileAsync failed for '{filePath}': {ex.Message}");
                 return null;
             }
         }

@@ -11,45 +11,55 @@
     BorderThickness="2"
     CornerRadius="0">
 
-    <StackPanel Spacing="8" HorizontalAlignment="Center" MinWidth="380" Padding="20">
-        <TextBlock Text="╔══════════════════════════════════════╗"
+    <StackPanel Spacing="4" HorizontalAlignment="Center" MinWidth="420" Padding="20">
+        <TextBlock Text="╔════════════════════════════════════════╗"
                    FontFamily="Consolas" FontSize="14" Foreground="#FF00AAAA"
                    HorizontalAlignment="Center"/>
-        <TextBlock Text="║                                      ║"
-                   FontFamily="Consolas" FontSize="14" Foreground="#FF00AAAA"
-                   HorizontalAlignment="Center"/>
-        <TextBlock Text="║       RetroC IDE  v1.0               ║"
+        <TextBlock x:Name="AppTitleLine"
+                   Text="║        RetroC AI IDE  v1.0             ║"
                    FontFamily="Consolas" FontSize="14" Foreground="#FFFFFF00"
                    HorizontalAlignment="Center" FontWeight="Bold"/>
-        <TextBlock Text="║                                      ║"
+        <TextBlock Text="║                                        ║"
                    FontFamily="Consolas" FontSize="14" Foreground="#FF00AAAA"
                    HorizontalAlignment="Center"/>
-        <TextBlock Text="║          Version 1.0                 ║"
+        <TextBlock Text="║   Inspired by Borland Turbo C 3.0      ║"
                    FontFamily="Consolas" FontSize="14" Foreground="#FFFFFFFF"
                    HorizontalAlignment="Center"/>
-        <TextBlock Text="║                                      ║"
-                   FontFamily="Consolas" FontSize="14" Foreground="#FF00AAAA"
-                   HorizontalAlignment="Center"/>
-        <TextBlock Text="║   Inspired by Borland Turbo C 3.0    ║"
+        <TextBlock Text="║   Built with WinUI 3 / .NET 8          ║"
                    FontFamily="Consolas" FontSize="14" Foreground="#FFFFFFFF"
                    HorizontalAlignment="Center"/>
-        <TextBlock Text="║   Built with WinUI 3 / .NET 8        ║"
+        <TextBlock Text="║                                        ║"
+                   FontFamily="Consolas" FontSize="14" Foreground="#FF00AAAA"
+                   HorizontalAlignment="Center"/>
+        <TextBlock Text="║   Bundled compiler: TCC (LGPL-2.1)     ║"
+                   FontFamily="Consolas" FontSize="14" Foreground="#FF00FFFF"
+                   HorizontalAlignment="Center"/>
+        <TextBlock Text="║   AI engine: LLamaSharp (MIT)          ║"
+                   FontFamily="Consolas" FontSize="14" Foreground="#FF00FFFF"
+                   HorizontalAlignment="Center"/>
+        <TextBlock Text="║   AI model:  Phi-3 mini (MIT/Microsoft)║"
+                   FontFamily="Consolas" FontSize="14" Foreground="#FF00FFFF"
+                   HorizontalAlignment="Center"/>
+        <TextBlock Text="║                                        ║"
+                   FontFamily="Consolas" FontSize="14" Foreground="#FF00AAAA"
+                   HorizontalAlignment="Center"/>
+        <TextBlock Text="║   Not affiliated with Borland or       ║"
+                   FontFamily="Consolas" FontSize="14" Foreground="#FF00AAAA"
+                   HorizontalAlignment="Center"/>
+        <TextBlock Text="║   Embarcadero Technologies             ║"
+                   FontFamily="Consolas" FontSize="14" Foreground="#FF00AAAA"
+                   HorizontalAlignment="Center"/>
+        <TextBlock Text="║                                        ║"
+                   FontFamily="Consolas" FontSize="14" Foreground="#FF00AAAA"
+                   HorizontalAlignment="Center"/>
+        <TextBlock Text="║  © 2026 RetroC AI IDE Contributors     ║"
                    FontFamily="Consolas" FontSize="14" Foreground="#FFFFFFFF"
                    HorizontalAlignment="Center"/>
-        <TextBlock Text="║                                      ║"
+        <TextBlock Text="╚════════════════════════════════════════╝"
                    FontFamily="Consolas" FontSize="14" Foreground="#FF00AAAA"
                    HorizontalAlignment="Center"/>
-        <TextBlock Text="║   Not affiliated with Borland or     ║"
-                   FontFamily="Consolas" FontSize="14" Foreground="#FF00AAAA"
-                   HorizontalAlignment="Center"/>
-        <TextBlock Text="║   Embarcadero Technologies           ║"
-                   FontFamily="Consolas" FontSize="14" Foreground="#FF00AAAA"
-                   HorizontalAlignment="Center"/>
-        <TextBlock Text="║                                      ║"
-                   FontFamily="Consolas" FontSize="14" Foreground="#FF00AAAA"
-                   HorizontalAlignment="Center"/>
-        <TextBlock Text="╚══════════════════════════════════════╝"
-                   FontFamily="Consolas" FontSize="14" Foreground="#FF00AAAA"
-                   HorizontalAlignment="Center"/>
+        <TextBlock Text="Help &gt; Third-Party Notices for full license info"
+                   FontFamily="Consolas" FontSize="11" Foreground="#FF00AAAA"
+                   HorizontalAlignment="Center" Margin="0,8,0,0"/>
     </StackPanel>
 </ContentDialog>

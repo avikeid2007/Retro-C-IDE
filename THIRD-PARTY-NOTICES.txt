@@ -1,0 +1,138 @@
+THIRD-PARTY NOTICES
+RetroC AI IDE
+=============================================================================
+
+This product includes third-party software components listed below.
+Each component is governed by its own license terms as identified herein.
+
+=============================================================================
+1. TCC — Tiny C Compiler
+=============================================================================
+
+Copyright (c) 2001-2004 Fabrice Bellard
+
+License: GNU Lesser General Public License, Version 2.1 (LGPL-2.1)
+Source:  https://bellard.org/tcc/  |  https://repo.or.cz/tinycc.git
+
+TCC is bundled in binary form under the terms of LGPL-2.1.
+You may obtain the complete corresponding source code from the URL above.
+Pursuant to LGPL-2.1, you have the right to:
+  - Obtain the source code of TCC.
+  - Replace the bundled TCC binary with a modified version.
+  - Reverse-engineer TCC for your own use.
+
+A copy of the LGPL-2.1 license is reproduced at the end of this file.
+
+=============================================================================
+2. LLamaSharp
+=============================================================================
+
+Copyright (c) 2023 SciSharp LLC and contributors
+
+License: MIT License
+Source:  https://github.com/SciSharp/LLamaSharp
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+=============================================================================
+3. llama.cpp (native backend, via LLamaSharp)
+=============================================================================
+
+Copyright (c) 2023 Georgi Gerganov and contributors
+
+License: MIT License
+Source:  https://github.com/ggerganov/llama.cpp
+
+Same MIT license terms as LLamaSharp (Section 2 above).
+
+=============================================================================
+4. Phi-3 Mini 4K Instruct (AI model — downloaded at runtime, not bundled)
+=============================================================================
+
+Publisher:  Microsoft Corporation
+License:    MIT License
+Model card: https://huggingface.co/microsoft/Phi-3-mini-4k-instruct-gguf
+
+The Phi-3 model is NOT bundled with this application. It is downloaded
+directly from Microsoft's official HuggingFace repository to the user's
+local machine at the user's request during first use. The model remains
+on the user's device and is never transmitted to any server.
+
+MIT License — Copyright (c) Microsoft Corporation
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+=============================================================================
+5. Windows App SDK / WinUI 3
+=============================================================================
+
+Copyright (c) Microsoft Corporation
+
+License: MIT License
+Source:  https://github.com/microsoft/WindowsAppSDK
+
+Same MIT license terms as Section 2 above.
+
+=============================================================================
+6. CommunityToolkit.Mvvm
+=============================================================================
+
+Copyright (c) .NET Foundation and Contributors
+
+License: MIT License
+Source:  https://github.com/CommunityToolkit/dotnet
+
+Same MIT license terms as Section 2 above.
+
+=============================================================================
+TRADEMARK NOTICES
+=============================================================================
+
+"Turbo C" and "Borland" are registered trademarks of Embarcadero Technologies,
+Inc. RetroC AI IDE is NOT affiliated with, endorsed by, or associated with
+Embarcadero Technologies, Idera, Inc., or the original Borland International.
+The retro visual design of this application is an independent re-implementation
+inspired by the general aesthetic of classic DOS-era IDEs.
+
+"Windows" and "Microsoft" are registered trademarks of Microsoft Corporation.
+This application is an independent product and is not made, endorsed, or
+sponsored by Microsoft Corporation, except where noted (Windows App SDK).
+
+=============================================================================
+GNU LESSER GENERAL PUBLIC LICENSE Version 2.1 (for TCC)
+=============================================================================
+
+Full text available at: https://www.gnu.org/licenses/lgpl-2.1.html
+And in the file: LGPL-2.1.txt (included in this distribution)

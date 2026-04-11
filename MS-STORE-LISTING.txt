@@ -23,7 +23,7 @@ Features:
 - Inline overlays for linker, make, and help dialogs
 - Message panel for errors and output
 - Project and file management
-- 100% open source, MIT licensed
+- Open source: app code is MIT licensed; bundled TCC compiler is LGPL 2.1
 
 ---
 
