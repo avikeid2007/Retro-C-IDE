@@ -12,7 +12,12 @@
     <WinUISDKReferences>false</WinUISDKReferences>
     <EnableMsixTooling>true</EnableMsixTooling>
     <Nullable>enable</Nullable>
+    <DefineConstants Condition="'$(BuildAI)'=='true'">$(DefineConstants);BUILD_AI</DefineConstants>
+    <!-- LLamaSharp ships multiple AVX variant native DLLs with the same name -->
+    <ErrorOnDuplicatePublishOutputFiles Condition="'$(BuildAI)'=='true'">false</ErrorOnDuplicatePublishOutputFiles>
   </PropertyGroup>
+
+
 
   <ItemGroup>
     <Content Include="Assets\SplashScreen.scale-200.png" />
@@ -22,6 +27,12 @@
     <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
     <Content Include="Assets\StoreLogo.png" />
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
+    <Content Include="..\..\THIRD-PARTY-NOTICES.txt" Link="THIRD-PARTY-NOTICES.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\LGPL-2.1.txt" Link="LGPL-2.1.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -39,6 +50,11 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.7705" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260317003" />
+  </ItemGroup>
+
+  <!-- AI features (LLamaSharp) — only included when BuildAI=true -->
+  <ItemGroup Condition="'$(BuildAI)'=='true'">
+    <ProjectReference Include="..\C.Compiler.AI\C.Compiler.AI.csproj" />
   </ItemGroup>
 
   <!--
@@ -59,7 +75,7 @@
     <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
     <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
     <AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
-    <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
+    <AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
     <GenerateTestArtifacts>True</GenerateTestArtifacts>
     <AppxBundle>Never</AppxBundle>
     <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>

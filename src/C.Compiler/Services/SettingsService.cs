@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -11,7 +12,7 @@ namespace C.Compiler.Services
     {
         private static readonly string SettingsDir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "TurboC-IDE");
+            "RetroC-IDE");
 
         private static readonly string SettingsFile = Path.Combine(SettingsDir, "settings.json");
 
@@ -27,8 +28,9 @@ namespace C.Compiler.Services
                     Settings = JsonSerializer.Deserialize<AppSettings>(json) ?? new AppSettings();
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                Debug.WriteLine($"[SettingsService] LoadAsync failed: {ex.Message}");
                 Settings = new AppSettings();
             }
         }
@@ -42,9 +44,9 @@ namespace C.Compiler.Services
                 string json = JsonSerializer.Serialize(Settings, options);
                 await File.WriteAllTextAsync(SettingsFile, json);
             }
-            catch
+            catch (Exception ex)
             {
-                // Silently fail settings save
+                Debug.WriteLine($"[SettingsService] SaveAsync failed: {ex.Message}");
             }
         }
     }
@@ -52,6 +54,7 @@ namespace C.Compiler.Services
     public class AppSettings
     {
         public CompilerSettings Compiler { get; set; } = new();
+        public AISettings AI { get; set; } = new();
         public int TabSize { get; set; } = 4;
         public bool AutoIndent { get; set; } = true;
         public string LastDirectory { get; set; } = string.Empty;

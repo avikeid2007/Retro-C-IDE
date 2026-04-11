@@ -60,6 +60,17 @@
 - 🔴 **Semantic coloring** — Keywords in red, stdlib in cyan, strings in yellow
 - ⚡ **Debounced** — 400ms idle delay prevents UI stalls on large files
 
+### **AI Assistant** (Optional)
+- 🤖 **100% local AI** — Runs offline using LLamaSharp + Phi-3 mini (~2.3 GB). No cloud, no API keys.
+- 💬 **Ask Mode** — Ask C questions, explain code, explain compiler errors, get code examples
+- 🛠️ **Agent Mode** — AI suggests structured edits with diff view; Apply/Reject with one click
+- 📎 **Editor context** — Sends your code, cursor position, and errors to the AI for targeted answers
+- ⚙️ **Configurable** — Custom GGUF models, GPU offload, temperature, context size
+- 📥 **Auto-download** — Model downloads automatically on first use with progress indicator
+- 🔒 **Private** — Your code never leaves your machine
+
+> 📖 See [AI-GUIDE.md](AI-GUIDE.md) for detailed usage instructions.
+
 ### **Menus — 100% wired**
 - All menus fully connected: File, Edit, Search, Run, Compile, Debug (stubs), Project (stubs), Options, Window, Help, System
 
@@ -110,29 +121,47 @@ Download the latest release from [Releases](https://github.com/yourusername/retr
 | `F1` | Help |
 | `Ctrl+F1` | Topic Search |
 | `Escape` | Close menu / dialog |
+| `Ctrl+I` | Toggle AI panel |
+| `Ctrl+Enter` | Send AI message |
 
 ---
 
 ## 🏗️ Architecture
 
 ```
-src/C.Compiler/
-├── Controls/
-│   └── EditorControl.xaml(.cs)     # Rich editor with syntax highlighting & block cursor
-├── Models/
-│   ├── EditorDocument.cs            # File state & selection tracking
-│   ├── CompilerSettings.cs          # TCC configuration (path, flags, timeout, linker...)
-│   └── CompilerError.cs             # Parsed compiler diagnostics
-├── Services/
-│   ├── CompilerService.cs           # TCC/GCC/MSVC process management
-│   ├── FileService.cs               # File I/O
-│   ├── ProcessRunner.cs             # Async process execution with timeout
-│   ├── SettingsService.cs           # JSON persistence (LocalAppData)
-│   ├── SyntaxHighlighter.cs         # C tokenizer & coloring
-│   └── TccManager.cs                # TCC auto-download & discovery
-├── Dialogs/                         # Unused ContentDialog stubs (UI uses inline overlays)
-├── MainWindow.xaml(.cs)             # Shell: menus, tabs, overlays, accelerators
-└── App.xaml(.cs)                    # Entry point, theme
+src/
+├── C.Compiler/                      # Main IDE application
+│   ├── Controls/
+│   │   ├── EditorControl.xaml(.cs)  # Rich editor with syntax highlighting & block cursor
+│   │   └── AIChatPanel.xaml(.cs)    # AI side panel with Ask/Agent modes
+│   ├── Models/
+│   │   ├── EditorDocument.cs        # File state & selection tracking
+│   │   ├── CompilerSettings.cs      # TCC configuration (path, flags, timeout, linker...)
+│   │   ├── CompilerError.cs         # Parsed compiler diagnostics
+│   │   └── AISettings.cs            # AI model & inference settings
+│   ├── Services/
+│   │   ├── CompilerService.cs       # TCC/GCC/MSVC process management
+│   │   ├── FileService.cs           # File I/O
+│   │   ├── ProcessRunner.cs         # Async process execution with timeout
+│   │   ├── SettingsService.cs       # JSON persistence (LocalAppData)
+│   │   ├── SyntaxHighlighter.cs     # C tokenizer & coloring
+│   │   └── TccManager.cs            # TCC auto-download & discovery
+│   ├── Dialogs/                     # CompilerOptions, FindReplace, GoToLine, About, AISettings
+│   ├── MainWindow.xaml(.cs)         # Shell: menus, tabs, overlays, AI integration
+│   └── App.xaml(.cs)                # Entry point, theme
+│
+└── C.Compiler.AI/                   # AI feature library (conditionally referenced via BUILD_AI)
+    ├── Models/
+    │   ├── ChatMessage.cs           # ChatRole, ChatMessage, ChatConversation
+    │   ├── AIChatMode.cs            # Ask / Agent enum
+    │   └── EditorContext.cs         # Code context passed to AI
+    └── Services/
+        ├── IAIChatService.cs        # AI service interface
+        ├── LocalAIChatService.cs    # LLamaSharp-based local inference
+        ├── LlamaModelManager.cs     # Model download, discovery & deletion
+        ├── CodeContextBuilder.cs    # System prompts & context formatting
+        ├── AgentEditParser.cs       # Parses edit/create blocks from Agent responses
+        └── MarkdownRenderer.cs      # Renders markdown, code blocks, diff views
 ```
 
 ---
@@ -184,6 +213,8 @@ Settings are persisted automatically to `%LOCALAPPDATA%\TurboC-IDE\settings.json
 - **No integrated debugger** — Debug menu items are stubs pending GDB integration
 - **No project files** — `.PRJ` multi-file project format not yet implemented
 - **No code completion** — Intentional (retro feel); can be added via LSP
+- **AI requires AVX2** — LLamaSharp needs a CPU with AVX2 support (most CPUs from 2013+)
+- **AI model is large** — Phi-3 mini Q4 is ~2.3 GB; downloaded once to `%LOCALAPPDATA%\RetroC-IDE\models\`
 
 ---
 
@@ -225,6 +256,8 @@ copies of the Software...
 
 - **Borland Turbo C 3.0** (1991) — Visual design and UX inspiration
 - **TCC (Tiny C Compiler)** — [Fabrice Bellard](https://bellard.org/tcc/) — LGPL, bundled compiler
+- **LLamaSharp** — [SciSharp](https://github.com/SciSharp/LLamaSharp) — C# bindings for llama.cpp
+- **Phi-3 mini** — [Microsoft](https://huggingface.co/microsoft/Phi-3-mini-4k-instruct-gguf) — Small language model for local AI
 - **WinUI 3 / Windows App SDK** — Microsoft's modern Windows UI framework
 - **Consolas** — Microsoft's monospace font, perfect for retro IDEs
 

@@ -1,0 +1,161 @@
+RetroC AI IDE
+=============================================================================
+Microsoft Store Listing — PAID VERSION
+=============================================================================
+
+Store URL (free version): https://apps.microsoft.com/detail/9N6D5SDRJ3NN
+
+---
+
+App Name
+--------
+RetroC AI IDE
+
+---
+
+Short Description (max 200 chars)
+----------------------------------
+Retro DOS-style C IDE with local AI assistant. Ask mode, Agent mode, offline
+Phi-3 model. No cloud. No API key. Your code stays on your machine.
+
+---
+
+Full Description
+----------------
+RetroC AI IDE brings the classic Borland Turbo C 3.0 experience to modern
+Windows — and adds a powerful local AI assistant that runs 100% offline on
+your device. No subscriptions, no cloud, no API keys. Your code never leaves
+your machine.
+
+✦ EVERYTHING IN THE FREE VERSION
+  - Authentic retro blue/cyan DOS-style interface
+  - Multi-tab editing with syntax highlighting for C89/C99
+  - Bundled TCC (Tiny C Compiler) — compile and run instantly, no save required
+  - Find & Replace, Go to Line, Find Procedure
+  - Full menu bar with all classic Turbo C menus
+  - Error navigation, configurable compiler, project management
+  - TCC source code available at https://repo.or.cz/tinycc.git
+
+✦ LOCAL AI ASSISTANT (paid exclusive)
+  - Powered by Phi-3 mini (~2.3 GB) — runs entirely on YOUR machine
+  - No internet connection required after the one-time model download
+  - No API key, no subscription, no data collection
+
+✦ ASK MODE
+  - Ask any C programming question directly in the IDE
+  - Select code → right-click → "Ask AI" for instant code analysis
+  - Right-click any compiler error → "Explain Error with AI"
+  - Responses include syntax-highlighted code with Copy and Insert buttons
+
+✦ AGENT MODE
+  - Tell the AI what to change: "add input validation", "fix the segfault"
+  - AI responds with a diff view (red = removed, green = added)
+  - One-click Apply applies the edit to your file and auto-compiles
+  - One-click Reject discards the suggestion — you stay in control
+
+✦ PRIVACY FIRST
+  - Zero telemetry, zero analytics
+  - All AI inference runs locally via llama.cpp / LLamaSharp
+  - AI model stored in your AppData — never uploaded anywhere
+  - No Microsoft account or login required to use AI features
+
+✦ CUSTOMIZABLE AI
+  - Bring your own GGUF model (Llama 3, Mistral, Phi-3, etc.)
+  - Configurable GPU offload, context size, temperature, max tokens
+  - Supports any instruction-tuned GGUF model
+
+---
+
+What's New (v1.0 initial release)
+----------------------------------
+- AI Assistant with Ask and Agent modes
+- Local Phi-3 mini model (auto-downloaded on first use)
+- Agent mode diff view with Apply/Reject
+- Explain Error with AI (right-click any compiler error)
+- Ask AI from editor selection (right-click context menu)
+- AI Settings dialog (model management, GPU config, temperature)
+- Help > AI Assistant Guide (in-app documentation)
+- All help pages open as editor tabs
+
+---
+
+Keywords
+--------
+C IDE, Turbo C, Borland, retro IDE, DOS style, C compiler, TCC, AI IDE,
+local AI, offline AI, C programming, C89, C99, code editor, Windows IDE,
+LLama, Phi-3, AI coding assistant, agent mode
+
+---
+
+Category
+--------
+Developer Tools > Code Editors & IDEs
+
+---
+
+Age Rating
+----------
+3+ (No mature content, no online multiplayer, no user-generated content)
+
+---
+
+Pricing Notes
+-------------
+- Paid app (suggested: $4.99 USD — one-time purchase, no subscription)
+- Free version available: https://apps.microsoft.com/detail/9N6D5SDRJ3NN
+- Consider "Try before you buy" via Microsoft Store trial feature
+
+---
+
+Privacy Policy URL
+------------------
+Link to your GitHub raw PRIVACY.md or a hosted privacy policy page.
+Required for Microsoft Store paid apps.
+
+Example: https://github.com/your-org/RetroC-IDE/blob/main/PRIVACY.md
+
+---
+
+Support / Contact
+-----------------
+https://github.com/your-org/RetroC-IDE/issues
+
+---
+
+EULA
+----
+The End User License Agreement is in EULA.txt (included in the app).
+You may also reference it from the Microsoft Store listing.
+
+---
+
+Copyright & Trademark Notice (required in Store listing)
+---------------------------------------------------------
+© 2026 RetroC AI IDE Contributors. Not affiliated with Borland International,
+Embarcadero Technologies, or Idera, Inc. "Turbo C" and "Borland" are
+trademarks of Embarcadero Technologies, Inc.
+
+Bundled TCC compiler is licensed under LGPL-2.1 (Fabrice Bellard).
+AI engine: LLamaSharp (MIT). AI model: Phi-3 mini by Microsoft (MIT).
+Downloaded at runtime — not bundled with the app.
+
+---
+
+Screenshots Needed
+------------------
+1. Main editor with retro blue UI + AI panel open (Ask mode)
+2. Agent mode diff view (red/green edit blocks with Apply/Reject)
+3. AI model download progress in chat
+4. Compiler error + "Explain Error with AI" context menu
+5. AI Settings dialog
+6. Help tab open (HELP.TXT)
+
+---
+
+System Requirements
+-------------------
+- OS:   Windows 10 version 19041 (May 2020 Update) or later
+- RAM:  4 GB minimum (8 GB recommended for AI features)
+- Disk: 3 GB free (for AI model download)
+- CPU:  x64 with AVX2 support (most CPUs from 2013+)
+- GPU:  Optional — any GPU with 4+ GB VRAM for faster AI inference

@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <RootNamespace>C.Compiler.AI</RootNamespace>
+    <Platforms>x86;x64;ARM64</Platforms>
+    <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
+    <UseWinUI>true</UseWinUI>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- LLamaSharp ships multiple AVX variant native DLLs with the same name -->
+    <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="LLamaSharp" Version="0.26.0" />
+    <PackageReference Include="LLamaSharp.Backend.Cpu" Version="0.26.0" ExcludeAssets="native;build;buildTransitive" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.7705" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260317003" />
+  </ItemGroup>
+
+  <!--
+    LLamaSharp.Backend.Cpu ships native DLLs for avx, avx2, avx512 and no-avx variants
+    across multiple platforms. The build props inject ALL of them as Content, which causes
+    PRI175 crashes in WinUI 3 packaging. We exclude build assets above, then manually
+    include only the AVX2 win-x64 DLLs.
+  -->
+  <ItemGroup>
+    <Content Include="$(NuGetPackageRoot)llamasharp.backend.cpu\0.26.0\LLamaSharpRuntimes\win-x64\native\avx2\ggml.dll"
+             Link="runtimes\win-x64\native\ggml.dll"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="$(NuGetPackageRoot)llamasharp.backend.cpu\0.26.0\LLamaSharpRuntimes\win-x64\native\avx2\ggml-base.dll"
+             Link="runtimes\win-x64\native\ggml-base.dll"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="$(NuGetPackageRoot)llamasharp.backend.cpu\0.26.0\LLamaSharpRuntimes\win-x64\native\avx2\ggml-cpu.dll"
+             Link="runtimes\win-x64\native\ggml-cpu.dll"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="$(NuGetPackageRoot)llamasharp.backend.cpu\0.26.0\LLamaSharpRuntimes\win-x64\native\avx2\llama.dll"
+             Link="runtimes\win-x64\native\llama.dll"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="$(NuGetPackageRoot)llamasharp.backend.cpu\0.26.0\LLamaSharpRuntimes\win-x64\native\avx2\mtmd.dll"
+             Link="runtimes\win-x64\native\mtmd.dll"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>
